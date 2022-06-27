@@ -1,12 +1,12 @@
-package just.curiosity.p2pack.core.handler;
+package just.curiosity.p2p_network.core.handler;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Set;
-import just.curiosity.p2pack.core.Server;
-import just.curiosity.p2pack.core.message.Message;
-import just.curiosity.p2pack.core.message.MessageType;
+import just.curiosity.p2p_network.core.Server;
+import just.curiosity.p2p_network.core.message.Message;
+import just.curiosity.p2p_network.core.message.MessageType;
 
 /**
  * @author zerdicorp

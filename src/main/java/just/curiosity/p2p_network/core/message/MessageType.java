@@ -1,4 +1,4 @@
-package just.curiosity.p2pack.core.message;
+package just.curiosity.p2p_network.core.message;
 
 /**
  * @author zerdicorp

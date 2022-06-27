@@ -1,4 +1,4 @@
-package just.curiosity.p2pack.core;
+package just.curiosity.p2p_network.core;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import just.curiosity.p2pack.core.handler.MessageHandler__Clone;
-import just.curiosity.p2pack.core.message.Message;
+import just.curiosity.p2p_network.core.handler.MessageHandler__Clone;
+import just.curiosity.p2p_network.core.message.Message;
 
 /**
  * @author zerdicorp
