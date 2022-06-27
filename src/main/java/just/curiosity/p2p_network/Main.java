@@ -1,7 +1,7 @@
-package just.curiosity.p2pack;
+package just.curiosity.p2p_network;
 
 import java.io.IOException;
-import just.curiosity.p2pack.core.Server;
+import just.curiosity.p2p_network.core.Server;
 
 /**
  * @author zerdicorp

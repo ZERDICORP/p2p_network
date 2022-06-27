@@ -1,9 +1,9 @@
-package just.curiosity.p2pack;
+package just.curiosity.p2p_network;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import just.curiosity.p2pack.core.message.MessageType;
+import just.curiosity.p2p_network.core.message.MessageType;
 
 /**
  * @author zerdicorp
