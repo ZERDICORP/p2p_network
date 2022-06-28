@@ -23,6 +23,7 @@ public class MessageHandler__Clone {
     }
 
     final Set<String> nodes = server.nodes();
+    nodes.remove(socket.getInetAddress().toString());
     try {
       final OutputStream outputStream = socket.getOutputStream();
       outputStream.write(String.join(",", nodes).getBytes());
