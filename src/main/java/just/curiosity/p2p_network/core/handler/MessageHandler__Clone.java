@@ -23,14 +23,14 @@ public class MessageHandler__Clone {
     }
 
     final Set<String> nodes = server.nodes();
-    nodes.add(socket.getInetAddress().toString() + ":" + socket.getLocalPort());
-
     try {
       final OutputStream outputStream = socket.getOutputStream();
       outputStream.write(String.join(",", nodes).getBytes());
     } catch (IOException e) {
       System.out.println("Can't write to socket output stream..");
     }
+
+    nodes.add(socket.getInetAddress().toString() + ":" + socket.getLocalPort());
 
     return true;
   }

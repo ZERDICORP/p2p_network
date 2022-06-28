@@ -1,7 +1,13 @@
 package just.curiosity.p2p_network;
 
 import java.io.IOException;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import just.curiosity.p2p_network.core.Server;
+import just.curiosity.p2p_network.core.message.MessageType;
 
 /**
  * @author zerdicorp
@@ -10,9 +16,41 @@ import just.curiosity.p2p_network.core.Server;
  */
 
 public class Main {
+  private static Set<String> cloneNodes(String rootNodeAddress) throws IOException {
+    final String[] hostAndPort = rootNodeAddress.split(":");
+    Set<String> nodes = new HashSet<>();
+    try (final Socket socket = new Socket(hostAndPort[0], Integer.parseInt(hostAndPort[1]))) {
+      final String payload = "Hello, world!";
+
+      final String message = MessageType.CLONE + "\n" +
+        payload.length() + "\n" +
+        payload;
+
+      socket.getOutputStream().write(message.getBytes());
+
+      final byte[] buffer = new byte[1024];
+      final int size = socket.getInputStream().read(buffer);
+      if (size == -1) {
+        return nodes;
+      }
+
+      nodes = new HashSet<>(
+        Arrays.asList(new String(buffer, 0, size, StandardCharsets.UTF_8).split(",")));
+    }
+    return nodes;
+  }
+
   public static void main(String[] args) {
-    final Server server = new Server(Integer.parseInt(args[0]));
+    int port = 8080;
+    if (args.length >= 2) {
+      port = Integer.parseInt(args[1]);
+    }
+
+    final Server server = new Server(port);
     try {
+      if (args.length > 0) {
+        server.setNodes(cloneNodes(args[0]));
+      }
       server.start();
     } catch (IOException e) {
       System.out.println("Can't start server.. " + e.getMessage());

@@ -19,10 +19,10 @@ import just.curiosity.p2p_network.core.message.Message;
  */
 
 public class Server {
-  private final boolean isRunning = true;
+  private boolean isRunning = true;
   private final int port;
   private final List<MessageHandler__Clone> handlers = new ArrayList<>();
-  private final Set<String> nodes = new HashSet<>();
+  private Set<String> nodes = new HashSet<>();
 
   {
     handlers.add(new MessageHandler__Clone());
@@ -34,6 +34,11 @@ public class Server {
 
   public Set<String> nodes() {
     return nodes;
+  }
+
+  public void setNodes(Set<String> nodes) {
+    this.nodes = nodes;
+    System.out.println(nodes);
   }
 
   private int headerSize(byte[] buffer, int size) {
