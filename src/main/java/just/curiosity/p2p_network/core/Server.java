@@ -14,7 +14,7 @@ import just.curiosity.p2p_network.core.message.Message;
 
 /**
  * @author zerdicorp
- * @project p2pack
+ * @project p2p_network
  * @created 6/27/22 - 10:06 AM
  */
 
@@ -38,6 +38,7 @@ public class Server {
 
   public void setNodes(Set<String> nodes) {
     this.nodes = nodes;
+    System.out.println("CLONED NODES: " + nodes);
   }
 
   private int headerSize(byte[] buffer, int size) {

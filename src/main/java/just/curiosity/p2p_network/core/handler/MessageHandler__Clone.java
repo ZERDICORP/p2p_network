@@ -10,7 +10,7 @@ import just.curiosity.p2p_network.core.message.MessageType;
 
 /**
  * @author zerdicorp
- * @project p2pack
+ * @project p2p_network
  * @created 6/27/22 - 10:53 AM
  */
 
@@ -30,7 +30,9 @@ public class MessageHandler__Clone {
       System.out.println("Can't write to socket output stream..");
     }
 
-    nodes.add(socket.getInetAddress().toString() + ":" + socket.getLocalPort());
+    nodes.add(socket.getInetAddress().toString());
+
+    System.out.println("CLONE ACCEPTED: " + socket.getInetAddress());
 
     return true;
   }
