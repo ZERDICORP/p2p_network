@@ -7,5 +7,6 @@ package just.curiosity.p2p_network.core.message;
  */
 
 public enum MessageType {
-  CLONE
+  CLONE_NODES,
+  ADD_NODE
 }

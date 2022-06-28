@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Set;
 import just.curiosity.p2p_network.core.annotation.WithType;
 import just.curiosity.p2p_network.core.handler.Handler;
-import just.curiosity.p2p_network.core.handler.MessageHandler__Clone;
+import just.curiosity.p2p_network.core.handler.Handler_AddNode;
+import just.curiosity.p2p_network.core.handler.Handler_CloneNodes;
 import just.curiosity.p2p_network.core.message.Message;
 
 /**
@@ -27,11 +28,16 @@ public class Server {
   private Set<String> nodes = new HashSet<>();
 
   {
-    handlers.add(new MessageHandler__Clone());
+    handlers.add(new Handler_CloneNodes());
+    handlers.add(new Handler_AddNode());
   }
 
   public Server(int port) {
     this.port = port;
+  }
+
+  public int port() {
+    return port;
   }
 
   public Set<String> nodes() {
@@ -97,9 +103,8 @@ public class Server {
       if (clazz.isAnnotationPresent(WithType.class)) {
         final WithType ann = clazz.getAnnotation(WithType.class);
         if (ann.value().equals(message.type())) {
-          if (handler.handle(this, socket, message)) {
-            break;
-          }
+          handler.handle(this, socket, message);
+          break;
         }
       } else {
         System.out.println("Handler \"" + clazz.getName() + "\" have no \"" +

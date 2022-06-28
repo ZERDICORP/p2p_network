@@ -11,5 +11,5 @@ import just.curiosity.p2p_network.core.message.Message;
  */
 
 public interface Handler {
-  boolean handle(Server server, Socket socket, Message message);
+  void handle(Server server, Socket socket, Message message);
 }

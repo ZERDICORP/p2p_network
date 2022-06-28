@@ -21,7 +21,7 @@ public class Main {
     final String[] hostAndPort = rootNodeAddress.split(":");
     Set<String> nodes = new HashSet<>();
     try (final Socket socket = new Socket(hostAndPort[0], Integer.parseInt(hostAndPort[1]))) {
-      socket.getOutputStream().write(new Message(MessageType.CLONE).build());
+      socket.getOutputStream().write(new Message(MessageType.CLONE_NODES).build());
 
       final byte[] buffer = new byte[1024];
       final int size = socket.getInputStream().read(buffer);
