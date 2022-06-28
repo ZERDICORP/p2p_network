@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import just.curiosity.p2p_network.core.Server;
+import just.curiosity.p2p_network.core.message.Message;
 import just.curiosity.p2p_network.core.message.MessageType;
 
 /**
@@ -20,13 +21,7 @@ public class Main {
     final String[] hostAndPort = rootNodeAddress.split(":");
     Set<String> nodes = new HashSet<>();
     try (final Socket socket = new Socket(hostAndPort[0], Integer.parseInt(hostAndPort[1]))) {
-      final String payload = "Hello, world!";
-
-      final String message = MessageType.CLONE + "\n" +
-        payload.length() + "\n" +
-        payload;
-
-      socket.getOutputStream().write(message.getBytes());
+      socket.getOutputStream().write(new Message(MessageType.CLONE).build());
 
       final byte[] buffer = new byte[1024];
       final int size = socket.getInputStream().read(buffer);

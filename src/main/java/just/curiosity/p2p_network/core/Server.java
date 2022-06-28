@@ -38,7 +38,6 @@ public class Server {
 
   public void setNodes(Set<String> nodes) {
     this.nodes = nodes;
-    System.out.println(nodes);
   }
 
   private int headerSize(byte[] buffer, int size) {
@@ -104,7 +103,6 @@ public class Server {
       System.out.println("Server has been started on port " + port + "..");
       while (isRunning) {
         final Socket socket = serverSocket.accept();
-        System.out.println("CONNECTED: " + socket.getInetAddress().toString());
         handleSocket(socket);
       }
     }
