@@ -9,31 +9,44 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import just.curiosity.p2p_network.core.handler.MessageHandler__Clone;
+import just.curiosity.p2p_network.core.annotation.WithType;
+import just.curiosity.p2p_network.core.handler.Handler;
+import just.curiosity.p2p_network.core.handler.Handler_AddNode;
+import just.curiosity.p2p_network.core.handler.Handler_CloneNodes;
 import just.curiosity.p2p_network.core.message.Message;
 
 /**
  * @author zerdicorp
- * @project p2pack
+ * @project p2p_network
  * @created 6/27/22 - 10:06 AM
  */
 
 public class Server {
-  private final boolean isRunning = true;
+  private boolean isRunning = true;
   private final int port;
-  private final List<MessageHandler__Clone> handlers = new ArrayList<>();
-  private final Set<String> nodes = new HashSet<>();
+  private final List<Handler> handlers = new ArrayList<>();
+  private Set<String> nodes = new HashSet<>();
 
   {
-    handlers.add(new MessageHandler__Clone());
+    handlers.add(new Handler_CloneNodes());
+    handlers.add(new Handler_AddNode());
   }
 
   public Server(int port) {
     this.port = port;
   }
 
+  public int port() {
+    return port;
+  }
+
   public Set<String> nodes() {
     return nodes;
+  }
+
+  public void setNodes(Set<String> nodes) {
+    this.nodes = nodes;
+    System.out.println("CLONED NODES: " + nodes);
   }
 
   private int headerSize(byte[] buffer, int size) {
@@ -85,9 +98,17 @@ public class Server {
       message.payload(payloadBuffer);
     }
 
-    for (MessageHandler__Clone handler : handlers) {
-      if (handler.handle(this, socket, message)) {
-        break;
+    for (Handler handler : handlers) {
+      final Class<?> clazz = handler.getClass();
+      if (clazz.isAnnotationPresent(WithType.class)) {
+        final WithType ann = clazz.getAnnotation(WithType.class);
+        if (ann.value().equals(message.type())) {
+          handler.handle(this, socket, message);
+          break;
+        }
+      } else {
+        System.out.println("Handler \"" + clazz.getName() + "\" have no \"" +
+          WithType.class.getName() + "\" annotation.. ignore");
       }
     }
 
@@ -99,7 +120,6 @@ public class Server {
       System.out.println("Server has been started on port " + port + "..");
       while (isRunning) {
         final Socket socket = serverSocket.accept();
-        System.out.println("CONNECTED: " + socket.getInetAddress().toString());
         handleSocket(socket);
       }
     }
