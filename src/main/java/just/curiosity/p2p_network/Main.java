@@ -17,10 +17,12 @@ import just.curiosity.p2p_network.core.message.MessageType;
  */
 
 public class Main {
+  private static final Server server = new Server(8080);
+
   private static Set<String> cloneNodes(String rootNodeAddress) throws IOException {
-    final String[] hostAndPort = rootNodeAddress.split(":");
-    Set<String> nodes = new HashSet<>();
-    try (final Socket socket = new Socket(hostAndPort[0], Integer.parseInt(hostAndPort[1]))) {
+    final Set<String> nodes = new HashSet<>();
+    nodes.add(rootNodeAddress);
+    try (final Socket socket = new Socket(rootNodeAddress, server.port())) {
       socket.getOutputStream().write(new Message(MessageType.CLONE_NODES).build());
 
       final byte[] buffer = new byte[1024];
@@ -29,19 +31,12 @@ public class Main {
         return nodes;
       }
 
-      nodes = new HashSet<>(
-        Arrays.asList(new String(buffer, 0, size, StandardCharsets.UTF_8).split(",")));
+      nodes.addAll(Arrays.asList(new String(buffer, 0, size, StandardCharsets.UTF_8).split(",")));
     }
     return nodes;
   }
 
   public static void main(String[] args) {
-    int port = 8080;
-    if (args.length >= 2) {
-      port = Integer.parseInt(args[1]);
-    }
-
-    final Server server = new Server(port);
     try {
       if (args.length > 0) {
         server.setNodes(cloneNodes(args[0]));
