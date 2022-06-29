@@ -1,4 +1,4 @@
-package just.curiosity.p2p_network.core.message;
+package just.curiosity.p2p_network.server.message;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

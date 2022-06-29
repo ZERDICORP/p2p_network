@@ -1,4 +1,4 @@
-package just.curiosity.p2p_network.core;
+package just.curiosity.p2p_network.server;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import just.curiosity.p2p_network.core.annotation.WithType;
-import just.curiosity.p2p_network.core.handler.Handler;
-import just.curiosity.p2p_network.core.handler.Handler_AddNode;
-import just.curiosity.p2p_network.core.handler.Handler_CloneNodes;
-import just.curiosity.p2p_network.core.message.Message;
+import just.curiosity.p2p_network.server.annotation.WithType;
+import just.curiosity.p2p_network.server.handler.Handler;
+import just.curiosity.p2p_network.server.handler.Handler_AddNode;
+import just.curiosity.p2p_network.server.handler.Handler_CloneNodes;
+import just.curiosity.p2p_network.server.message.Message;
 
 /**
  * @author zerdicorp

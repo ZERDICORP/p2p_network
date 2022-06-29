@@ -1,8 +1,8 @@
-package just.curiosity.p2p_network.core.handler;
+package just.curiosity.p2p_network.server.handler;
 
 import java.net.Socket;
-import just.curiosity.p2p_network.core.Server;
-import just.curiosity.p2p_network.core.message.Message;
+import just.curiosity.p2p_network.server.Server;
+import just.curiosity.p2p_network.server.message.Message;
 
 /**
  * @author zerdicorp

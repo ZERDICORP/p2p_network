@@ -1,10 +1,10 @@
-package just.curiosity.p2p_network.core.annotation;
+package just.curiosity.p2p_network.server.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import just.curiosity.p2p_network.core.message.MessageType;
+import just.curiosity.p2p_network.server.message.MessageType;
 
 /**
  * @author zerdicorp
