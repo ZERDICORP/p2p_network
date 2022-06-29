@@ -29,7 +29,7 @@ public class Handler_CloneNodes implements Handler {
       System.out.println("Can't write to socket output stream..");
     }
 
-    System.out.println("CLONE ACCEPTED: " + socketAddress);
+    System.out.println("CLONE ACCEPTED: " + socketAddress); // TODO: remove debug log
 
     // Notifying the nodes that a new node has connected
     // and needs to be added to the list of nodes.

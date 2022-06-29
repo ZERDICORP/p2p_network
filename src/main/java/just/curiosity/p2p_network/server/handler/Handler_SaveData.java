@@ -22,7 +22,7 @@ public class Handler_SaveData implements Handler {
     // If the request to save data was sent from the local machine,
     // then you need to share this data between all nodes.
     if (socketAddress.equals("127.0.0.1")) {
-      System.out.println("SHARE DATA: " + new String(message.payload(), StandardCharsets.UTF_8));
+      System.out.println("SHARE DATA: " + new String(message.payload(), StandardCharsets.UTF_8)); // TODO: remove debug log
       server.sendToAll(new Message(MessageType.SAVE_DATA, message.payload()));
       return;
     }
@@ -33,6 +33,6 @@ public class Handler_SaveData implements Handler {
     final List<String> dataStorage = server.dataStorage();
     dataStorage.add(new String(message.payload(), StandardCharsets.UTF_8));
 
-    System.out.println("UPDATED DATA STORAGE: " + dataStorage);
+    System.out.println("UPDATED DATA STORAGE: " + dataStorage); // TODO: remove debug log
   }
 }

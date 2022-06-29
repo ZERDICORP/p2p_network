@@ -22,6 +22,6 @@ public class Handler_AddNode implements Handler {
     final Set<String> nodes = server.nodes();
     nodes.add(new String(payload, 0, payload.length, StandardCharsets.UTF_8));
 
-    System.out.println("NODES AFTER ADDING NEW NODE: " + nodes);
+    System.out.println("NODES AFTER ADDING NEW NODE: " + nodes); // TODO: remove debug log
   }
 }
