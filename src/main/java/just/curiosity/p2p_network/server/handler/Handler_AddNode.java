@@ -1,12 +1,12 @@
-package just.curiosity.p2p_network.core.handler;
+package just.curiosity.p2p_network.server.handler;
 
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
-import just.curiosity.p2p_network.core.Server;
-import just.curiosity.p2p_network.core.annotation.WithType;
-import just.curiosity.p2p_network.core.message.Message;
-import just.curiosity.p2p_network.core.message.MessageType;
+import just.curiosity.p2p_network.server.Server;
+import just.curiosity.p2p_network.server.annotation.WithType;
+import just.curiosity.p2p_network.server.message.Message;
+import just.curiosity.p2p_network.server.message.MessageType;
 
 /**
  * @author zerdicorp
@@ -22,6 +22,6 @@ public class Handler_AddNode implements Handler {
     final Set<String> nodes = server.nodes();
     nodes.add(new String(payload, 0, payload.length, StandardCharsets.UTF_8));
 
-    System.out.println("NODES AFTER ADDING NEW NODE: " + nodes);
+    System.out.println("NODES AFTER ADDING NEW NODE: " + nodes); // TODO: remove debug log
   }
 }

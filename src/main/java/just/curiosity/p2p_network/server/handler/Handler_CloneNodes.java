@@ -1,13 +1,13 @@
-package just.curiosity.p2p_network.core.handler;
+package just.curiosity.p2p_network.server.handler;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Set;
-import just.curiosity.p2p_network.core.Server;
-import just.curiosity.p2p_network.core.annotation.WithType;
-import just.curiosity.p2p_network.core.message.Message;
-import just.curiosity.p2p_network.core.message.MessageType;
+import just.curiosity.p2p_network.server.Server;
+import just.curiosity.p2p_network.server.annotation.WithType;
+import just.curiosity.p2p_network.server.message.Message;
+import just.curiosity.p2p_network.server.message.MessageType;
 
 /**
  * @author zerdicorp
@@ -29,19 +29,12 @@ public class Handler_CloneNodes implements Handler {
       System.out.println("Can't write to socket output stream..");
     }
 
+    System.out.println("CLONE ACCEPTED: " + socketAddress); // TODO: remove debug log
+
     // Notifying the nodes that a new node has connected
     // and needs to be added to the list of nodes.
-    for (String nodeAddress : nodes) {
-      try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-        final OutputStream outputStream = nodeSocket.getOutputStream();
-        outputStream.write(new Message(MessageType.ADD_NODE, socketAddress.getBytes()).build());
-      } catch (IOException e) {
-        System.out.println("Can't send message to address \"" + nodeAddress + "\".. " + e);
-      }
-    }
+    server.sendToAll(new Message(MessageType.ADD_NODE, socketAddress.getBytes()));
 
     nodes.add(socketAddress);
-
-    System.out.println("CLONE ACCEPTED: " + socketAddress);
   }
 }

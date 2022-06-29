@@ -1,19 +1,23 @@
-package just.curiosity.p2p_network.core;
+package just.curiosity.p2p_network.server;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import just.curiosity.p2p_network.core.annotation.WithType;
-import just.curiosity.p2p_network.core.handler.Handler;
-import just.curiosity.p2p_network.core.handler.Handler_AddNode;
-import just.curiosity.p2p_network.core.handler.Handler_CloneNodes;
-import just.curiosity.p2p_network.core.message.Message;
+import just.curiosity.p2p_network.server.annotation.WithType;
+import just.curiosity.p2p_network.server.handler.Handler;
+import just.curiosity.p2p_network.server.handler.Handler_AddNode;
+import just.curiosity.p2p_network.server.handler.Handler_CloneNodes;
+import just.curiosity.p2p_network.server.handler.Handler_SaveData;
+import just.curiosity.p2p_network.server.message.Message;
+import just.curiosity.p2p_network.server.message.MessageType;
 
 /**
  * @author zerdicorp
@@ -24,12 +28,14 @@ import just.curiosity.p2p_network.core.message.Message;
 public class Server {
   private boolean isRunning = true;
   private final int port;
+  private final List<String> dataStorage = new ArrayList<>();
   private final List<Handler> handlers = new ArrayList<>();
-  private Set<String> nodes = new HashSet<>();
+  private final Set<String> nodes = new HashSet<>();
 
   {
     handlers.add(new Handler_CloneNodes());
     handlers.add(new Handler_AddNode());
+    handlers.add(new Handler_SaveData());
   }
 
   public Server(int port) {
@@ -44,9 +50,20 @@ public class Server {
     return nodes;
   }
 
-  public void setNodes(Set<String> nodes) {
-    this.nodes = nodes;
-    System.out.println("CLONED NODES: " + nodes);
+  public List<String> dataStorage() {
+    return dataStorage;
+  }
+
+  public void sendToAll(Message message) {
+    nodes.parallelStream()
+      .forEach(nodeAddress -> {
+        try (final Socket nodeSocket = new Socket(nodeAddress, port)) {
+          final OutputStream outputStream = nodeSocket.getOutputStream();
+          outputStream.write(message.build());
+        } catch (IOException e) {
+          System.out.println("Can't send message to address \"" + nodeAddress + "\".. " + e);
+        }
+      });
   }
 
   private int headerSize(byte[] buffer, int size) {
@@ -111,16 +128,32 @@ public class Server {
           WithType.class.getName() + "\" annotation.. ignore");
       }
     }
+  }
 
-    socket.close();
+  public void cloneNodes(String rootNodeAddress) throws IOException {
+    nodes.add(rootNodeAddress);
+    try (final Socket socket = new Socket(rootNodeAddress, port)) {
+      socket.getOutputStream().write(new Message(MessageType.CLONE_NODES).build());
+
+      final byte[] buffer = new byte[1024];
+      final int size = socket.getInputStream().read(buffer);
+      if (size == -1) {
+        System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
+        return;
+      }
+
+      nodes.addAll(Arrays.asList(new String(buffer, 0, size, StandardCharsets.UTF_8).split(",")));
+    }
+    System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
   }
 
   public void start() throws IOException {
     try (final ServerSocket serverSocket = new ServerSocket(port)) {
       System.out.println("Server has been started on port " + port + "..");
       while (isRunning) {
-        final Socket socket = serverSocket.accept();
-        handleSocket(socket);
+        try (final Socket socket = serverSocket.accept()) {
+          handleSocket(socket);
+        }
       }
     }
   }

@@ -1,4 +1,4 @@
-package just.curiosity.p2p_network.core.message;
+package just.curiosity.p2p_network.server.message;
 
 /**
  * @author zerdicorp
@@ -8,5 +8,6 @@ package just.curiosity.p2p_network.core.message;
 
 public enum MessageType {
   CLONE_NODES,
-  ADD_NODE
+  ADD_NODE,
+  SAVE_DATA
 }
