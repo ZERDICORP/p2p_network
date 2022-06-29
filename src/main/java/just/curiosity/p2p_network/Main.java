@@ -3,6 +3,7 @@ package just.curiosity.p2p_network;
 import java.io.IOException;
 import java.util.Arrays;
 import just.curiosity.p2p_network.client.Client;
+import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.server.Server;
 
 /**
@@ -23,7 +24,7 @@ public class Main {
   }
 
   private static void startServer(String[] args) {
-    final Server server = new Server(8080);
+    final Server server = new Server(Const.PORT);
     try {
       if (args.length > 1) {
         server.cloneNodes(args[1]);

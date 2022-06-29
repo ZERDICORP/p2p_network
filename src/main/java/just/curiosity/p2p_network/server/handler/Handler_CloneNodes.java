@@ -29,19 +29,12 @@ public class Handler_CloneNodes implements Handler {
       System.out.println("Can't write to socket output stream..");
     }
 
+    System.out.println("CLONE ACCEPTED: " + socketAddress);
+
     // Notifying the nodes that a new node has connected
     // and needs to be added to the list of nodes.
-    for (String nodeAddress : nodes) {
-      try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-        final OutputStream outputStream = nodeSocket.getOutputStream();
-        outputStream.write(new Message(MessageType.ADD_NODE, socketAddress.getBytes()).build());
-      } catch (IOException e) {
-        System.out.println("Can't send message to address \"" + nodeAddress + "\".. " + e);
-      }
-    }
+    server.sendToAll(new Message(MessageType.ADD_NODE, socketAddress.getBytes()));
 
     nodes.add(socketAddress);
-
-    System.out.println("CLONE ACCEPTED: " + socketAddress);
   }
 }
