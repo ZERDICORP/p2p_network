@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +15,7 @@ import just.curiosity.p2p_network.server.handler.Handler;
 import just.curiosity.p2p_network.server.handler.Handler_AddNode;
 import just.curiosity.p2p_network.server.handler.Handler_CloneNodes;
 import just.curiosity.p2p_network.server.message.Message;
+import just.curiosity.p2p_network.server.message.MessageType;
 
 /**
  * @author zerdicorp
@@ -42,11 +44,6 @@ public class Server {
 
   public Set<String> nodes() {
     return nodes;
-  }
-
-  public void setNodes(Set<String> nodes) {
-    this.nodes = nodes;
-    System.out.println("CLONED NODES: " + nodes);
   }
 
   private int headerSize(byte[] buffer, int size) {
@@ -113,6 +110,24 @@ public class Server {
     }
 
     socket.close();
+  }
+
+  public void cloneNodes(String rootNodeAddress) throws IOException {
+    nodes = new HashSet<>();
+    nodes.add(rootNodeAddress);
+    try (final Socket socket = new Socket(rootNodeAddress, port)) {
+      socket.getOutputStream().write(new Message(MessageType.CLONE_NODES).build());
+
+      final byte[] buffer = new byte[1024];
+      final int size = socket.getInputStream().read(buffer);
+      if (size == -1) {
+        System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
+        return;
+      }
+
+      nodes.addAll(Arrays.asList(new String(buffer, 0, size, StandardCharsets.UTF_8).split(",")));
+    }
+    System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
   }
 
   public void start() throws IOException {
