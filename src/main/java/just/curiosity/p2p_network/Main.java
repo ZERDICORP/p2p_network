@@ -14,7 +14,7 @@ import just.curiosity.p2p_network.server.Server;
 
 public class Main {
   private static void startClient(String[] args) {
-    if (args.length != 4) {
+    if (args.length < 1) {
       System.out.println("Wrong usage.. Check out usage guide!");
       return;
     }
@@ -24,7 +24,7 @@ public class Main {
   }
 
   private static void startServer(String[] args) {
-    final Server server = new Server(Const.PORT);
+    final Server server = new Server(Const.PORT);;
     try {
       if (args.length > 1) {
         server.cloneNodes(args[1]);
