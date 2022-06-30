@@ -7,6 +7,7 @@ import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithType;
 import just.curiosity.p2p_network.server.message.Message;
 import just.curiosity.p2p_network.server.message.MessageType;
+import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * @author zerdicorp
@@ -37,7 +38,7 @@ public class Handler_SaveData implements Handler {
     }
 
     final Map<String, String> dataStorage = server.dataStorage();
-    dataStorage.put(payload[0], payload[1]);
+    dataStorage.put(DigestUtils.sha256Hex(payload[0] + socketAddress), payload[1]);
 
     System.out.println("UPDATED DATA STORAGE: " + dataStorage); // TODO: remove debug log
   }
