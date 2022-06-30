@@ -1,5 +1,6 @@
 package just.curiosity.p2p_network.client;
 
+import just.curiosity.p2p_network.client.handler.Handler_Get;
 import just.curiosity.p2p_network.client.handler.Handler_Save;
 import just.curiosity.p2p_network.client.zer.cmd.CMDHandlerProcessor;
 
@@ -12,7 +13,10 @@ import just.curiosity.p2p_network.client.zer.cmd.CMDHandlerProcessor;
 public class Client {
   public void handle(String[] args) {
     final CMDHandlerProcessor processor = CMDHandlerProcessor.getInstance();
+
     processor.add(new Handler_Save());
+    processor.add(new Handler_Get());
+
     processor.process(args);
   }
 }

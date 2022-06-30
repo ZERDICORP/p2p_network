@@ -8,13 +8,16 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import just.curiosity.p2p_network.server.annotation.WithType;
 import just.curiosity.p2p_network.server.handler.Handler;
 import just.curiosity.p2p_network.server.handler.Handler_AddNode;
 import just.curiosity.p2p_network.server.handler.Handler_CloneNodes;
+import just.curiosity.p2p_network.server.handler.Handler_GetData;
 import just.curiosity.p2p_network.server.handler.Handler_SaveData;
 import just.curiosity.p2p_network.server.message.Message;
 import just.curiosity.p2p_network.server.message.MessageType;
@@ -28,7 +31,8 @@ import just.curiosity.p2p_network.server.message.MessageType;
 public class Server {
   private boolean isRunning = true;
   private final int port;
-  private final List<String> dataStorage = new ArrayList<>();
+  private final Map<String, String> dataStorage = new HashMap<>();
+  private final Map<String, String> sharedDataSignature = new HashMap<>();
   private final List<Handler> handlers = new ArrayList<>();
   private final Set<String> nodes = new HashSet<>();
 
@@ -36,6 +40,7 @@ public class Server {
     handlers.add(new Handler_CloneNodes());
     handlers.add(new Handler_AddNode());
     handlers.add(new Handler_SaveData());
+    handlers.add(new Handler_GetData());
   }
 
   public Server(int port) {
@@ -50,8 +55,12 @@ public class Server {
     return nodes;
   }
 
-  public List<String> dataStorage() {
+  public Map<String, String> dataStorage() {
     return dataStorage;
+  }
+
+  public Map<String, String> sharedDataSignature() {
+    return sharedDataSignature;
   }
 
   public void sendToAll(Message message) {
@@ -135,7 +144,7 @@ public class Server {
     try (final Socket socket = new Socket(rootNodeAddress, port)) {
       socket.getOutputStream().write(new Message(MessageType.CLONE_NODES).build());
 
-      final byte[] buffer = new byte[1024];
+      final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
       final int size = socket.getInputStream().read(buffer);
       if (size == -1) {
         System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log

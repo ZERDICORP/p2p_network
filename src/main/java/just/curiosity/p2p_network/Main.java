@@ -14,7 +14,7 @@ import just.curiosity.p2p_network.server.Server;
 
 public class Main {
   private static void startClient(String[] args) {
-    if (args.length != 4) {
+    if (args.length < 1) {
       System.out.println("Wrong usage.. Check out usage guide!");
       return;
     }
