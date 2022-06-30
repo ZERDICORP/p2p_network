@@ -30,33 +30,37 @@ public class Handler_GetData implements Handler {
     if (socketAddress.equals("127.0.0.1")) {
       System.out.println("REQUESTING DATA BY ID: " + dataId); // TODO: remove debug log
       final Set<String> nodes = server.nodes();
-      String foundData = null;
+      final Map<String, String> sharedDataSignature = server.sharedDataSignature();
       for (String nodeAddress : nodes) {
         try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
           nodeSocket.getOutputStream().write(new Message(MessageType.GET_DATA, message.payload()).build());
 
-          final byte[] buffer = new byte[1024];
+          final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
           final int size = nodeSocket.getInputStream().read(buffer);
           if (size == -1) {
             continue;
           }
 
-          foundData = new String(buffer, 0, size, StandardCharsets.UTF_8);
+          final String foundData = new String(buffer, 0, size, StandardCharsets.UTF_8);
+          // If the hash of the found data does not match the
+          // previously stored hash, then the data has been
+          // modified and is no longer valid. Skip and continue
+          // the search.
+          if (!sharedDataSignature.get(dataId).equals(DigestUtils.sha256Hex(foundData))) {
+            continue;
+          }
+
+          try {
+            final OutputStream outputStream = socket.getOutputStream();
+            outputStream.write(foundData.getBytes());
+          } catch (IOException e) {
+            System.out.println("Can't write to socket output stream..");
+          }
+
           break;
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
-      }
-
-      if (foundData == null) {
-        return;
-      }
-
-      try {
-        final OutputStream outputStream = socket.getOutputStream();
-        outputStream.write(foundData.getBytes());
-      } catch (IOException e) {
-        System.out.println("Can't write to socket output stream..");
       }
 
       return;
@@ -70,7 +74,7 @@ public class Handler_GetData implements Handler {
 
     try {
       final OutputStream outputStream = socket.getOutputStream();
-      outputStream.write((data).getBytes());
+      outputStream.write(data.getBytes());
     } catch (IOException e) {
       System.out.println("Can't write to socket output stream..");
     }

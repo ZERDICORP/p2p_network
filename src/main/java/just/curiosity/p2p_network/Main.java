@@ -24,7 +24,7 @@ public class Main {
   }
 
   private static void startServer(String[] args) {
-    final Server server = new Server(Const.PORT);;
+    final Server server = new Server(Const.PORT);
     try {
       if (args.length > 1) {
         server.cloneNodes(args[1]);

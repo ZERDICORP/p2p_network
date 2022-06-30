@@ -32,6 +32,7 @@ public class Server {
   private boolean isRunning = true;
   private final int port;
   private final Map<String, String> dataStorage = new HashMap<>();
+  private final Map<String, String> sharedDataSignature = new HashMap<>();
   private final List<Handler> handlers = new ArrayList<>();
   private final Set<String> nodes = new HashSet<>();
 
@@ -56,6 +57,10 @@ public class Server {
 
   public Map<String, String> dataStorage() {
     return dataStorage;
+  }
+
+  public Map<String, String> sharedDataSignature() {
+    return sharedDataSignature;
   }
 
   public void sendToAll(Message message) {
@@ -139,7 +144,7 @@ public class Server {
     try (final Socket socket = new Socket(rootNodeAddress, port)) {
       socket.getOutputStream().write(new Message(MessageType.CLONE_NODES).build());
 
-      final byte[] buffer = new byte[1024];
+      final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
       final int size = socket.getInputStream().read(buffer);
       if (size == -1) {
         System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
