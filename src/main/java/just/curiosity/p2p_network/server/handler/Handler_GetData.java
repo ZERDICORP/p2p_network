@@ -83,7 +83,7 @@ public class Handler_GetData implements Handler {
 
     try {
       final OutputStream outputStream = socket.getOutputStream();
-      outputStream.write((data + ".").getBytes());
+      outputStream.write(data.getBytes());
     } catch (IOException e) {
       System.out.println("Can't write to socket output stream.. " + e);
     }
