@@ -1,6 +1,7 @@
 package just.curiosity.p2p_network.client.zer.cmd;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author zerdicorp
@@ -9,6 +10,7 @@ import java.util.ArrayList;
  */
 
 public class CMDHandlerProcessor {
+  private final List<CMDHandler> handlers = new ArrayList<>();
   private static CMDHandlerProcessor instance = null;
 
   public static CMDHandlerProcessor getInstance() {
@@ -17,16 +19,13 @@ public class CMDHandlerProcessor {
     return instance;
   }
 
-  ArrayList<CMDHandler> handlers = new ArrayList<>();
-
   public void add(CMDHandler h) {
-    this.handlers.add(h);
+    handlers.add(h);
   }
 
   public void process(String[] args) {
-    for (CMDHandler handler : this.handlers) {
+    for (CMDHandler handler : handlers) {
       String value = String.join(" ", args);
-
       Class<?> clazz = handler.getClass();
       if (clazz.isAnnotationPresent(CMDPattern.class)) {
         CMDPattern ann = clazz.getAnnotation(CMDPattern.class);

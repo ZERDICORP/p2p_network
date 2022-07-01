@@ -1,7 +1,10 @@
 package just.curiosity.p2p_network.server;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -73,6 +76,17 @@ public class Server {
           System.out.println("Can't send message to address \"" + nodeAddress + "\".. " + e);
         }
       });
+  }
+
+  public String readFile(String path) throws IOException {
+    StringBuilder resultStringBuilder = new StringBuilder();
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(path)))) {
+      String line;
+      while ((line = br.readLine()) != null) {
+        resultStringBuilder.append(line).append("\n");
+      }
+    }
+    return resultStringBuilder.toString();
   }
 
   private int headerSize(byte[] buffer, int size) {

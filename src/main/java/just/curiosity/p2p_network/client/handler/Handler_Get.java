@@ -16,7 +16,7 @@ import just.curiosity.p2p_network.server.message.MessageType;
  * @created 6/30/22 - 12:25 PM
  */
 
-@CMDPattern("get [a-zA-Z0-9._-]{1,255}")
+@CMDPattern("get .*")
 public class Handler_Get extends CMDHandler {
   @Override
   public void handle(String[] args) {
