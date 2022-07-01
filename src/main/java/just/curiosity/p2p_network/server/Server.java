@@ -11,10 +11,8 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import just.curiosity.p2p_network.server.annotation.WithType;
 import just.curiosity.p2p_network.server.handler.Handler;
@@ -34,7 +32,6 @@ import just.curiosity.p2p_network.server.message.MessageType;
 public class Server {
   private boolean isRunning = true;
   private final int port;
-  private final Map<String, String> dataStorage = new HashMap<>();
   private final List<Handler> handlers = new ArrayList<>();
   private final Set<String> nodes = new HashSet<>();
 
@@ -55,10 +52,6 @@ public class Server {
 
   public Set<String> nodes() {
     return nodes;
-  }
-
-  public Map<String, String> dataStorage() {
-    return dataStorage;
   }
 
   public void sendToAll(Message message) {

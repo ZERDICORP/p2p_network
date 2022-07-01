@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.Set;
 import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.server.Server;
@@ -75,9 +74,12 @@ public class Handler_GetData implements Handler {
       return;
     }
 
-    final Map<String, String> dataStorage = server.dataStorage();
-    final String data = dataStorage.get(DigestUtils.sha256Hex(fileName + socketAddress));
-    if (data == null) {
+    final String shardName = DigestUtils.sha256Hex(fileName + socketAddress);
+    final String data;
+    try {
+      data = server.readFromFile(Const.shardsDirectory + "/" + shardName);
+    } catch (IOException e) {
+      System.out.println("Can't read shard \"" + fileName + "\".. " + e);
       return;
     }
 
