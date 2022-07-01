@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithType;
@@ -34,7 +33,6 @@ public class Handler_SaveData implements Handler {
         return;
       }
 
-      System.out.println("SHARE DATA: " + fileContent); // TODO: remove debug log
       final String fileNameHash = DigestUtils.sha256Hex(new File(pathToFile).getName());
       server.sendToAll(new Message(MessageType.SAVE_DATA,
         (fileNameHash + "\n" + fileContent).getBytes()));
@@ -45,6 +43,8 @@ public class Handler_SaveData implements Handler {
       // whether someone has changed the data or not.
       server.writeToFile(Const.signaturesDirectory + "/" + fileNameHash,
         DigestUtils.sha256Hex(fileContent));
+
+      System.out.println("SHARED SHARD: " + fileNameHash); // TODO: remove debug log
       return;
     }
 
@@ -56,9 +56,9 @@ public class Handler_SaveData implements Handler {
     // If the request came from another node (not from the local
     // machine), then someone is sharing data, and we need to store
     // it on the server.
-    final Map<String, String> dataStorage = server.dataStorage();
-    dataStorage.put(DigestUtils.sha256Hex(payload[0] + socketAddress), payload[1]);
+    server.writeToFile(Const.shardsDirectory + "/" + DigestUtils.sha256Hex(payload[0] + socketAddress),
+      payload[1]);
 
-    System.out.println("UPDATED DATA STORAGE: " + dataStorage); // TODO: remove debug log
+    System.out.println("SAVED SHARD: " + DigestUtils.sha256Hex(payload[0] + socketAddress)); // TODO: remove debug log
   }
 }
