@@ -7,6 +7,9 @@ target/
 ### HELP SCRIPTS ###
 transfer
 
+### HELP FOLDERS ###
+data/
+
 ### STS ###
 .apt_generated
 .classpath

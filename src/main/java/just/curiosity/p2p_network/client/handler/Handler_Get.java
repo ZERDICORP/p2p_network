@@ -16,7 +16,7 @@ import just.curiosity.p2p_network.server.message.MessageType;
  * @created 6/30/22 - 12:25 PM
  */
 
-@CMDPattern("get [a-zA-Z0-9._-]{1,255}")
+@CMDPattern("get .*")
 public class Handler_Get extends CMDHandler {
   @Override
   public void handle(String[] args) {
@@ -24,14 +24,15 @@ public class Handler_Get extends CMDHandler {
       final OutputStream outputStream = nodeSocket.getOutputStream();
       outputStream.write(new Message(MessageType.GET_DATA, args[1].getBytes()).build());
 
-      final byte[] buffer = new byte[1024];
+      final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
       final int size = nodeSocket.getInputStream().read(buffer);
       if (size == -1) {
-        System.out.println("Data with id(" + args[1] + ") not found..");
+        System.out.println("File \"" + args[1] + "\" not found..");
         return;
       }
 
-      System.out.println("Found data by id(" + args[1] + "): " + new String(buffer, 0, size, StandardCharsets.UTF_8));
+      System.out.println("File \"" + args[1] + "\" was found: " +
+        new String(buffer, 0, size, StandardCharsets.UTF_8));
     } catch (IOException e) {
       System.out.println("Can't send message to local node.. " + e);
     }

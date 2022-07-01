@@ -1,6 +1,8 @@
 package just.curiosity.p2p_network;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import just.curiosity.p2p_network.client.Client;
 import just.curiosity.p2p_network.constants.Const;
@@ -13,6 +15,15 @@ import just.curiosity.p2p_network.server.Server;
  */
 
 public class Main {
+  static {
+    try {
+      Files.createDirectories(Paths.get(Const.shardsDirectory));
+      Files.createDirectories(Paths.get(Const.signaturesDirectory));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private static void startClient(String[] args) {
     if (args.length < 1) {
       System.out.println("Wrong usage.. Check out usage guide!");
