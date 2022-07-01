@@ -20,7 +20,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 public class Handler_SaveData implements Handler {
   public void handle(Server server, Socket socket, Message message) {
     final String socketAddress = socket.getInetAddress().toString().split("/")[1];
-
     // If the request to save data was sent from the local machine,
     // then you need to share this data between all nodes.
     if (socketAddress.equals("127.0.0.1")) {
@@ -36,7 +35,8 @@ public class Handler_SaveData implements Handler {
       }
 
       System.out.println("SHARE DATA: " + fileName + "\n" + fileContent); // TODO: remove debug log
-      server.sendToAll(new Message(MessageType.SAVE_DATA, (fileName + "\n" + fileContent).getBytes()));
+      server.sendToAll(new Message(MessageType.SAVE_DATA,
+        (DigestUtils.sha256Hex(fileName) + "\n" + fileContent).getBytes()));
 
       // We must save the hash of the data so that when we later
       // receive it from the network by identifier, we can compare
