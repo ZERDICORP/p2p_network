@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
+import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithType;
 import just.curiosity.p2p_network.server.message.Message;
@@ -21,16 +22,24 @@ import org.apache.commons.codec.digest.DigestUtils;
 @WithType(MessageType.GET_DATA)
 public class Handler_GetData implements Handler {
   public void handle(Server server, Socket socket, Message message) {
-    final String dataId = new String(message.payload(), StandardCharsets.UTF_8);
+    final String fileName = DigestUtils.sha256Hex(new String(message.payload(), StandardCharsets.UTF_8));
     final String socketAddress = socket.getInetAddress().toString().split("/")[1];
 
     // If the request came from the local host, then you need
     // to go through the list of nodes and request data from
     // them using the identifier sent by the client.
     if (socketAddress.equals("127.0.0.1")) {
-      System.out.println("REQUESTING DATA BY ID: " + dataId); // TODO: remove debug log
+      System.out.println("REQUESTING DATA BY ID: " + fileName); // TODO: remove debug log
       final Set<String> nodes = server.nodes();
-      final Map<String, String> sharedDataSignature = server.sharedDataSignature();
+      final String dataSignature;
+      try {
+        dataSignature = server.readFromFile(
+          Const.signaturesDirectory + "/" + fileName);
+      } catch (IOException e) {
+        System.out.println("Can't read signature \"" + fileName + "\".. " + e);
+        return;
+      }
+
       for (String nodeAddress : nodes) {
         try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
           nodeSocket.getOutputStream().write(new Message(MessageType.GET_DATA, message.payload()).build());
@@ -46,7 +55,7 @@ public class Handler_GetData implements Handler {
           // previously stored hash, then the data has been
           // modified and is no longer valid. Skip and continue
           // the search.
-          if (!sharedDataSignature.get(dataId).equals(DigestUtils.sha256Hex(foundData))) {
+          if (!dataSignature.equals(DigestUtils.sha256Hex(foundData))) {
             continue;
           }
 
@@ -54,7 +63,7 @@ public class Handler_GetData implements Handler {
             final OutputStream outputStream = socket.getOutputStream();
             outputStream.write(foundData.getBytes());
           } catch (IOException e) {
-            System.out.println("Can't write to socket output stream..");
+            System.out.println("Can't write to socket output stream.. " + e);
           }
 
           break;
@@ -67,16 +76,16 @@ public class Handler_GetData implements Handler {
     }
 
     final Map<String, String> dataStorage = server.dataStorage();
-    final String data = dataStorage.get(DigestUtils.sha256Hex(dataId + socketAddress));
+    final String data = dataStorage.get(DigestUtils.sha256Hex(fileName + socketAddress));
     if (data == null) {
       return;
     }
 
     try {
       final OutputStream outputStream = socket.getOutputStream();
-      outputStream.write(data.getBytes());
+      outputStream.write((data + ".").getBytes());
     } catch (IOException e) {
-      System.out.println("Can't write to socket output stream..");
+      System.out.println("Can't write to socket output stream.. " + e);
     }
   }
 }

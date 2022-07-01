@@ -2,10 +2,10 @@ package just.curiosity.p2p_network.server;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +35,6 @@ public class Server {
   private boolean isRunning = true;
   private final int port;
   private final Map<String, String> dataStorage = new HashMap<>();
-  private final Map<String, String> sharedDataSignature = new HashMap<>();
   private final List<Handler> handlers = new ArrayList<>();
   private final Set<String> nodes = new HashSet<>();
 
@@ -62,23 +61,26 @@ public class Server {
     return dataStorage;
   }
 
-  public Map<String, String> sharedDataSignature() {
-    return sharedDataSignature;
-  }
-
   public void sendToAll(Message message) {
     nodes.parallelStream()
       .forEach(nodeAddress -> {
         try (final Socket nodeSocket = new Socket(nodeAddress, port)) {
-          final OutputStream outputStream = nodeSocket.getOutputStream();
-          outputStream.write(message.build());
+          nodeSocket.getOutputStream().write(message.build());
         } catch (IOException e) {
           System.out.println("Can't send message to address \"" + nodeAddress + "\".. " + e);
         }
       });
   }
 
-  public String readFile(String path) throws IOException {
+  public void writeToFile(String path, String content) {
+    try (final FileOutputStream out = new FileOutputStream(path)) {
+      out.write(content.getBytes());
+    } catch (IOException e) {
+      System.out.println("Can't write to file \"" + path + "\".. " + e);
+    }
+  }
+
+  public String readFromFile(String path) throws IOException {
     final StringBuilder stringBuilder = new StringBuilder();
     try (final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(
       new FileInputStream(path)))) {

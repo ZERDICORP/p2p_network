@@ -8,4 +8,6 @@ package just.curiosity.p2p_network.constants;
 
 public interface Const {
   int PORT = 8080;
+  String shardsDirectory = "./data/shards";
+  String signaturesDirectory = "./data/signatures";
 }

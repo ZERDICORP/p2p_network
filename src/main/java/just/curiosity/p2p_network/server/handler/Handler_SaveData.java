@@ -1,9 +1,11 @@
 package just.curiosity.p2p_network.server.handler;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithType;
 import just.curiosity.p2p_network.server.message.Message;
@@ -23,27 +25,26 @@ public class Handler_SaveData implements Handler {
     // If the request to save data was sent from the local machine,
     // then you need to share this data between all nodes.
     if (socketAddress.equals("127.0.0.1")) {
-      final String fileName = new String(message.payload(), StandardCharsets.UTF_8);
+      final String pathToFile = new String(message.payload(), StandardCharsets.UTF_8);
       String fileContent;
       try {
-        fileContent = server.readFile(fileName);
+        fileContent = server.readFromFile(pathToFile);
       } catch (IOException e) {
-        // If the file does not exist on the device, the request is
-        // ignored (because the check for the presence of the file
-        // occurs on the client).
+        System.out.println("Can't read file \"" + pathToFile + "\".. " + e);
         return;
       }
 
-      System.out.println("SHARE DATA: " + fileName + "\n" + fileContent); // TODO: remove debug log
+      System.out.println("SHARE DATA: " + fileContent); // TODO: remove debug log
+      final String fileNameHash = DigestUtils.sha256Hex(new File(pathToFile).getName());
       server.sendToAll(new Message(MessageType.SAVE_DATA,
-        (DigestUtils.sha256Hex(fileName) + "\n" + fileContent).getBytes()));
+        (fileNameHash + "\n" + fileContent).getBytes()));
 
       // We must save the hash of the data so that when we later
       // receive it from the network by identifier, we can compare
       // it with the hash of the received data, thereby determining
       // whether someone has changed the data or not.
-      final Map<String, String> sharedDataSignature = server.sharedDataSignature();
-      sharedDataSignature.put(fileName, DigestUtils.sha256Hex(fileContent));
+      server.writeToFile(Const.signaturesDirectory + "/" + fileNameHash,
+        DigestUtils.sha256Hex(fileContent));
       return;
     }
 
