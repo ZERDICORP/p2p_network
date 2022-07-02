@@ -36,7 +36,7 @@ public class Handler_SaveData implements Handler {
         return;
       }
 
-      final byte[] fileNameHash = DigestUtils.sha256(new File(pathToFile).getName());
+      final String fileNameHash = DigestUtils.sha256Hex(new File(pathToFile).getName());
       final byte[] data = fileContent.getBytes();
       final byte[][] shards = new byte[(int) Math.ceil((double) data.length / Const.SHARD_SIZE)][Const.SHARD_SIZE];
       for (int i = 0; i < data.length; i += Const.SHARD_SIZE) {
@@ -49,7 +49,7 @@ public class Handler_SaveData implements Handler {
 
       for (int i = 0; i < shards.length; i++) {
         try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-          outputStream.write(fileNameHash);
+          outputStream.write(fileNameHash.getBytes());
           outputStream.write(10); // new line
           outputStream.write(shards[i]);
           server.sendToAll(new Message(MessageType.SAVE_DATA, outputStream.toByteArray()));
@@ -57,26 +57,26 @@ public class Handler_SaveData implements Handler {
           throw new RuntimeException(e);
         }
 
+        // We must save the hash of the shard so that when we later
+        // receive it, we can compare it with the hash of the received
+        // shard, thereby determining whether someone has changed the
+        // shard or not.
+        server.writeToFile(Const.signaturesDirectory + "/" + fileNameHash + "_" + i,
+          DigestUtils.sha256Hex(shards[i]));
+
         System.out.println("SHARED SHARD: " + DigestUtils.sha256Hex(new File(pathToFile).getName()) + "_" + i); // TODO: remove debug log
       }
-
-//      // We must save the hash of the data so that when we later
-//      // receive it from the network by identifier, we can compare
-//      // it with the hash of the received data, thereby determining
-//      // whether someone has changed the data or not.
-//      server.writeToFile(Const.signaturesDirectory + "/" + fileNameHash,
-//        DigestUtils.sha256Hex(fileContent));
-      return;
-    }
-
-    final String[] payload = new String(message.payload(), StandardCharsets.UTF_8).split("\n", 2);
-    if (payload.length != 2) {
       return;
     }
 
     // If the request came from another node (not from the local
     // machine), then someone shared the shard, and we need to
     // save it to disk.
+
+    final String[] payload = new String(message.payload(), StandardCharsets.UTF_8).split("\n", 2);
+    if (payload.length != 2) {
+      return;
+    }
 
     final String shardName = DigestUtils.sha256Hex(payload[0] + socketAddress);
     final File shardsDirectory = new File(Const.shardsDirectory);
