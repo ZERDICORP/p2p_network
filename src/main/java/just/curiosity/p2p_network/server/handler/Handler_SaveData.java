@@ -2,6 +2,7 @@ package just.curiosity.p2p_network.server.handler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -39,33 +40,47 @@ public class Handler_SaveData implements Handler {
       final String fileNameHash = DigestUtils.sha256Hex(new File(pathToFile).getName());
       final byte[] data = fileContent.getBytes();
       final byte[][] shards = new byte[(int) Math.ceil((double) data.length / Const.SHARD_SIZE)][Const.SHARD_SIZE];
+      final int[] indices = new int[shards.length];
       for (int i = 0; i < data.length; i += Const.SHARD_SIZE) {
+        final int shardIndex = i / Const.SHARD_SIZE;
         for (int j = 0; j < Const.SHARD_SIZE && j + i < data.length; j++) {
-          shards[i / Const.SHARD_SIZE][j] = data[j + i];
+          shards[shardIndex][j] = data[j + i];
         }
+        // We fill in the list of indices in order to know the
+        // correct sequence of shards.
+        indices[shardIndex] = shardIndex;
       }
 
-      shuffleArray(shards);
+      shuffleArray(shards, indices);
 
-      for (int i = 0; i < shards.length; i++) {
-        try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-          outputStream.write(fileNameHash.getBytes());
-          outputStream.write(10); // new line
-          outputStream.write(shards[i]);
-          server.sendToAll(new Message(MessageType.SAVE_DATA, outputStream.toByteArray()));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
+      try (final FileOutputStream out = new FileOutputStream(Const.sharedDirectory + "/" + fileNameHash)) {
+        for (int i = 0; i < shards.length; i++) {
+          // Sending a shard to all nodes.
+          try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            outputStream.write(fileNameHash.getBytes());
+            outputStream.write('\n');
+            outputStream.write(shards[i]);
+            server.sendToAll(new Message(MessageType.SAVE_DATA, outputStream.toByteArray()));
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+
+          // We save information about the correct sequence of
+          // shards and their contents.
+          out.write(String.valueOf(indices[i]).getBytes());
+          out.write(',');
+          out.write(DigestUtils.sha256Hex(shards[i]).getBytes());
+
+          if (i < shards.length - 1) {
+            out.write('\n');
+          }
+
+          System.out.println("SHARED SHARD: " + DigestUtils.sha256Hex(new File(pathToFile).getName()) + "_" + i); // TODO: remove debug log
         }
-
-        // We must save the hash of the shard so that when we later
-        // receive it, we can compare it with the hash of the received
-        // shard, thereby determining whether someone has changed the
-        // shard or not.
-        server.writeToFile(Const.signaturesDirectory + "/" + fileNameHash + "_" + i,
-          DigestUtils.sha256Hex(shards[i]));
-
-        System.out.println("SHARED SHARD: " + DigestUtils.sha256Hex(new File(pathToFile).getName()) + "_" + i); // TODO: remove debug log
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
+
       return;
     }
 
@@ -90,13 +105,18 @@ public class Handler_SaveData implements Handler {
     System.out.println("SAVED SHARD: " + shardName + "_" + shards.length); // TODO: remove debug log
   }
 
-  private void shuffleArray(byte[][] arr) {
+  private void shuffleArray(byte[][] arr, int[] indices) {
     final Random random = ThreadLocalRandom.current();
     for (int i = 0; i < arr.length; i++) {
       final int j = random.nextInt(i + 1);
+      // Swap shards.
       final byte[] temp = arr[j];
       arr[j] = arr[i];
       arr[i] = temp;
+      // Swap indices.
+      final int tempIndex = indices[j];
+      indices[j] = indices[i];
+      indices[i] = tempIndex;
     }
   }
 }
