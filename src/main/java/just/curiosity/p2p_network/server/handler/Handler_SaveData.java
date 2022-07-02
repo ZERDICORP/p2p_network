@@ -1,9 +1,12 @@
 package just.curiosity.p2p_network.server.handler;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithType;
@@ -33,18 +36,36 @@ public class Handler_SaveData implements Handler {
         return;
       }
 
-      final String fileNameHash = DigestUtils.sha256Hex(new File(pathToFile).getName());
-      server.sendToAll(new Message(MessageType.SAVE_DATA,
-        (fileNameHash + "\n" + fileContent).getBytes()));
+      final byte[] fileNameHash = DigestUtils.sha256(new File(pathToFile).getName());
+      final byte[] data = fileContent.getBytes();
+      final byte[][] shards = new byte[(int) Math.ceil((double) data.length / Const.SHARD_SIZE)][Const.SHARD_SIZE];
+      for (int i = 0; i < data.length; i += Const.SHARD_SIZE) {
+        for (int j = 0; j < Const.SHARD_SIZE && j + i < data.length; j++) {
+          shards[i / Const.SHARD_SIZE][j] = data[j + i];
+        }
+      }
 
-      // We must save the hash of the data so that when we later
-      // receive it from the network by identifier, we can compare
-      // it with the hash of the received data, thereby determining
-      // whether someone has changed the data or not.
-      server.writeToFile(Const.signaturesDirectory + "/" + fileNameHash,
-        DigestUtils.sha256Hex(fileContent));
+      shuffleArray(shards);
 
-      System.out.println("SHARED SHARD: " + fileNameHash); // TODO: remove debug log
+      for (int i = 0; i < shards.length; i++) {
+        try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+          outputStream.write(fileNameHash);
+          outputStream.write(10); // new line
+          outputStream.write(shards[i]);
+          server.sendToAll(new Message(MessageType.SAVE_DATA, outputStream.toByteArray()));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+
+        System.out.println("SHARED SHARD: " + DigestUtils.sha256Hex(new File(pathToFile).getName()) + "_" + i); // TODO: remove debug log
+      }
+
+//      // We must save the hash of the data so that when we later
+//      // receive it from the network by identifier, we can compare
+//      // it with the hash of the received data, thereby determining
+//      // whether someone has changed the data or not.
+//      server.writeToFile(Const.signaturesDirectory + "/" + fileNameHash,
+//        DigestUtils.sha256Hex(fileContent));
       return;
     }
 
@@ -54,11 +75,28 @@ public class Handler_SaveData implements Handler {
     }
 
     // If the request came from another node (not from the local
-    // machine), then someone is sharing data, and we need to store
-    // it on the server.
-    server.writeToFile(Const.shardsDirectory + "/" + DigestUtils.sha256Hex(payload[0] + socketAddress),
-      payload[1]);
+    // machine), then someone shared the shard, and we need to
+    // save it to disk.
 
-    System.out.println("SAVED SHARD: " + DigestUtils.sha256Hex(payload[0] + socketAddress)); // TODO: remove debug log
+    final String shardName = DigestUtils.sha256Hex(payload[0] + socketAddress);
+    final File shardsDirectory = new File(Const.shardsDirectory);
+    final File[] shards = shardsDirectory.listFiles((d, name) -> name.startsWith(shardName));
+    if (shards == null) {
+      return;
+    }
+
+    server.writeToFile(Const.shardsDirectory + "/" + shardName + "_" + shards.length, payload[1]);
+
+    System.out.println("SAVED SHARD: " + shardName + "_" + shards.length); // TODO: remove debug log
+  }
+
+  private void shuffleArray(byte[][] arr) {
+    final Random random = ThreadLocalRandom.current();
+    for (int i = 0; i < arr.length; i++) {
+      final int j = random.nextInt(i + 1);
+      final byte[] temp = arr[j];
+      arr[j] = arr[i];
+      arr[i] = temp;
+    }
   }
 }
