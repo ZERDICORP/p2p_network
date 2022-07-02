@@ -18,7 +18,6 @@ public class Main {
   static {
     try {
       Files.createDirectories(Paths.get(Const.shardsDirectory));
-      Files.createDirectories(Paths.get(Const.signaturesDirectory));
       Files.createDirectories(Paths.get(Const.sharedDirectory));
     } catch (IOException e) {
       throw new RuntimeException(e);
