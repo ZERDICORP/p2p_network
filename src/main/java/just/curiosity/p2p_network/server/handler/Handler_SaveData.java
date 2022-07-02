@@ -53,34 +53,32 @@ public class Handler_SaveData implements Handler {
 
       shuffleArray(shards, indices);
 
-      try (final FileOutputStream out = new FileOutputStream(Const.sharedDirectory + "/" + fileNameHash)) {
-        for (int i = 0; i < shards.length; i++) {
-          // Sending a shard to all nodes.
-          try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            outputStream.write(fileNameHash.getBytes());
-            outputStream.write('\n');
-            outputStream.write(shards[i]);
-            server.sendToAll(new Message(MessageType.SAVE_DATA, outputStream.toByteArray()));
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-
-          // We save information about the correct sequence of
-          // shards and their contents.
-          out.write(String.valueOf(indices[i]).getBytes());
-          out.write(',');
-          out.write(DigestUtils.sha256Hex(shards[i]).getBytes());
-
-          if (i < shards.length - 1) {
-            out.write('\n');
-          }
-
-          System.out.println("SHARED SHARD: " + DigestUtils.sha256Hex(new File(pathToFile).getName()) + "_" + i); // TODO: remove debug log
+      final String[] shardsInfo = new String[shards.length];
+      for (int i = 0; i < shards.length; i++) {
+        // Sending a shard to all nodes.
+        try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+          outputStream.write(fileNameHash.getBytes());
+          outputStream.write('\n');
+          outputStream.write(String.valueOf(i).getBytes());
+          outputStream.write('\n');
+          outputStream.write(shards[i]);
+          server.sendToAll(new Message(MessageType.SAVE_DATA, outputStream.toByteArray()));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
         }
+
+        // We save information about the correct sequence of
+        // shards and their contents.
+        shardsInfo[indices[i]] = i + "," + DigestUtils.sha256Hex(shards[i]);
+
+        System.out.println("SHARED SHARD: " + DigestUtils.sha256Hex(new File(pathToFile).getName()) + "_" + i); // TODO: remove debug log
+      }
+
+      try (final FileOutputStream out = new FileOutputStream(Const.sharedDirectory + "/" + fileNameHash)) {
+        out.write(String.join("\n", shardsInfo).getBytes());
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-
       return;
     }
 
@@ -88,21 +86,15 @@ public class Handler_SaveData implements Handler {
     // machine), then someone shared the shard, and we need to
     // save it to disk.
 
-    final String[] payload = new String(message.payload(), StandardCharsets.UTF_8).split("\n", 2);
-    if (payload.length != 2) {
+    final String[] payload = new String(message.payload(), StandardCharsets.UTF_8).split("\n", 3);
+    if (payload.length != 3) {
       return;
     }
 
-    final String shardName = DigestUtils.sha256Hex(payload[0] + socketAddress);
-    final File shardsDirectory = new File(Const.shardsDirectory);
-    final File[] shards = shardsDirectory.listFiles((d, name) -> name.startsWith(shardName));
-    if (shards == null) {
-      return;
-    }
+    final String shardName = DigestUtils.sha256Hex(payload[0] + socketAddress) + "_" + payload[1];
+    server.writeToFile(Const.shardsDirectory + "/" + shardName, payload[2]);
 
-    server.writeToFile(Const.shardsDirectory + "/" + shardName + "_" + shards.length, payload[1]);
-
-    System.out.println("SAVED SHARD: " + shardName + "_" + shards.length); // TODO: remove debug log
+    System.out.println("SAVED SHARD: " + shardName); // TODO: remove debug log
   }
 
   private void shuffleArray(byte[][] arr, int[] indices) {
