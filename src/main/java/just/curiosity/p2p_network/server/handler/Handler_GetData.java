@@ -1,7 +1,6 @@
 package just.curiosity.p2p_network.server.handler;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
@@ -28,64 +27,80 @@ public class Handler_GetData implements Handler {
     // to go through the list of nodes and request data from
     // them using the identifier sent by the client.
     if (socketAddress.equals("127.0.0.1")) {
-      System.out.println("REQUESTING DATA BY ID: " + fileName); // TODO: remove debug log
       final Set<String> nodes = server.nodes();
-      final String dataSignature;
+      final String[] shards;
       try {
-        dataSignature = server.readFromFile(
-          Const.signaturesDirectory + "/" + fileName);
+        final String sharedContent = server.readFromFile(Const.sharedDirectory + "/" + fileName);
+        shards = sharedContent.split("\n");
       } catch (IOException e) {
         System.out.println("Can't read signature \"" + fileName + "\".. " + e);
         return;
       }
 
-      for (String nodeAddress : nodes) {
-        try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-          nodeSocket.getOutputStream().write(new Message(MessageType.GET_DATA, message.payload()).build());
+      final StringBuilder originalFileContent = new StringBuilder();
+      for (String shardInfo : shards) {
+        final String[] shardInfoArr = shardInfo.split(",");
 
-          final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
-          final int size = nodeSocket.getInputStream().read(buffer);
-          if (size == -1) {
-            continue;
-          }
+        System.out.println("REQUESTING SHARD: " + fileName + "_" + shardInfoArr[0]); // TODO: remove debug log
 
-          final String foundData = new String(buffer, 0, size, StandardCharsets.UTF_8);
-          // If the hash of the found data does not match the
-          // previously stored hash, then the data has been
-          // modified and is no longer valid. Skip and continue
-          // the search.
-          if (!dataSignature.equals(DigestUtils.sha256Hex(foundData))) {
-            continue;
-          }
+        String shard = null;
+        for (String nodeAddress : nodes) {
+          try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
+            nodeSocket.getOutputStream().write(new Message(MessageType.GET_DATA, (fileName + "\n" + shardInfoArr[0]).getBytes())
+              .build());
 
-          try {
-            final OutputStream outputStream = socket.getOutputStream();
-            outputStream.write(foundData.getBytes());
+            final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
+            final int size = nodeSocket.getInputStream().read(buffer);
+            if (size == -1) {
+              continue;
+            }
+
+            final String foundShard = new String(buffer, 0, size, StandardCharsets.UTF_8);
+            // If the hash of the found shard does not match the
+            // signature, then the shard has been modified and is
+            // no longer valid. Skip and continue the search.
+            if (!shardInfoArr[1].equals(DigestUtils.sha256Hex(foundShard))) {
+              continue;
+            }
+
+            shard = foundShard;
+            break;
           } catch (IOException e) {
-            System.out.println("Can't write to socket output stream.. " + e);
+            throw new RuntimeException(e);
           }
-
-          break;
-        } catch (IOException e) {
-          throw new RuntimeException(e);
         }
+
+        if (shard == null) {
+          return;
+        }
+
+        originalFileContent.append(shard);
       }
 
+      try {
+        socket.getOutputStream().write(originalFileContent.toString().getBytes());
+      } catch (IOException e) {
+        System.out.println("Can't write to socket output stream.. " + e);
+      }
       return;
     }
 
-    final String shardName = DigestUtils.sha256Hex(fileName + socketAddress);
-    final String data;
+    final String[] payload = new String(message.payload(), StandardCharsets.UTF_8).split("\n", 2);
+    if (payload.length != 2) {
+      return;
+    }
+
+    final String shardName = DigestUtils.sha256Hex(payload[0] + socketAddress) + "_" + payload[1];
+    final String shard;
     try {
-      data = server.readFromFile(Const.shardsDirectory + "/" + shardName);
+      shard = server.readFromFile(Const.shardsDirectory + "/" + shardName);
     } catch (IOException e) {
       System.out.println("Can't read shard \"" + fileName + "\".. " + e);
       return;
     }
 
     try {
-      final OutputStream outputStream = socket.getOutputStream();
-      outputStream.write(data.getBytes());
+      socket.getOutputStream().write(shard.getBytes());
     } catch (IOException e) {
       System.out.println("Can't write to socket output stream.. " + e);
     }
