@@ -19,15 +19,16 @@ import just.curiosity.p2p_network.server.message.MessageType;
 @CMDPattern("save .*")
 public class Handler_Save extends CMDHandler {
   @Override
-  public void handle(String[] args) {
+  public void handle(String[] args, String secret) {
     if (!new File(args[1]).exists()) {
       System.out.println("File \"" + args[1] + "\" does not exist..");
       return;
     }
 
+    final String payload = secret + "\n" + args[1];
     try (final Socket nodeSocket = new Socket("127.0.0.1", Const.PORT)) {
       final OutputStream outputStream = nodeSocket.getOutputStream();
-      outputStream.write(new Message(MessageType.SAVE_DATA, args[1].getBytes()).build());
+      outputStream.write(new Message(MessageType.SAVE_DATA, payload.getBytes()).build());
     } catch (IOException e) {
       System.out.println("Can't send message to local node.. " + e);
     }

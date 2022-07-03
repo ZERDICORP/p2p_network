@@ -2,13 +2,11 @@ package just.curiosity.p2p_network.server;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -65,14 +63,6 @@ public class Server {
       });
   }
 
-  public void writeToFile(String path, String content) {
-    try (final FileOutputStream out = new FileOutputStream(path)) {
-      out.write(content.getBytes());
-    } catch (IOException e) {
-      System.out.println("Can't write to file \"" + path + "\".. " + e);
-    }
-  }
-
   public String readFromFile(String path) throws IOException {
     final StringBuilder stringBuilder = new StringBuilder();
     try (final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(
@@ -112,7 +102,7 @@ public class Server {
     final int headerSize = headerSize(firstSegmentBuffer, firstSegmentSize);
 
     Message message = new Message();
-    if (!message.parse(new String(firstSegmentBuffer, 0, headerSize, StandardCharsets.UTF_8))) {
+    if (!message.parse(new String(firstSegmentBuffer, 0, headerSize))) {
       return;
     }
 
@@ -162,7 +152,7 @@ public class Server {
         return;
       }
 
-      nodes.addAll(Arrays.asList(new String(buffer, 0, size, StandardCharsets.UTF_8).split(",")));
+      nodes.addAll(Arrays.asList(new String(buffer, 0, size).split(",")));
     }
     System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
   }

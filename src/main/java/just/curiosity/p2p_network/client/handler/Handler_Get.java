@@ -19,10 +19,11 @@ import just.curiosity.p2p_network.server.message.MessageType;
 @CMDPattern("get .*")
 public class Handler_Get extends CMDHandler {
   @Override
-  public void handle(String[] args) {
+  public void handle(String[] args, String secret) {
+    final String payload = secret + "\n" + args[1];
     try (final Socket nodeSocket = new Socket("127.0.0.1", Const.PORT)) {
       final OutputStream outputStream = nodeSocket.getOutputStream();
-      outputStream.write(new Message(MessageType.GET_DATA, args[1].getBytes()).build());
+      outputStream.write(new Message(MessageType.GET_DATA, payload.getBytes()).build());
 
       final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
       final int size = nodeSocket.getInputStream().read(buffer);
@@ -32,7 +33,7 @@ public class Handler_Get extends CMDHandler {
       }
 
       System.out.println("File \"" + args[1] + "\" was found: " +
-        new String(buffer, 0, size, StandardCharsets.UTF_8));
+        new String(buffer, 0, size));
     } catch (IOException e) {
       System.out.println("Can't send message to local node.. " + e);
     }

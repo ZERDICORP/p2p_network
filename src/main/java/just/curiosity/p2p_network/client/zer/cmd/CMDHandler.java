@@ -7,5 +7,5 @@ package just.curiosity.p2p_network.client.zer.cmd;
  */
 
 public abstract class CMDHandler {
-  public abstract void handle(String[] args);
+  public abstract void handle(String[] args, String secret);
 }
