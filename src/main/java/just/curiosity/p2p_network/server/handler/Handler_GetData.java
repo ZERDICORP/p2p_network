@@ -12,6 +12,7 @@ import just.curiosity.p2p_network.server.annotation.WithType;
 import just.curiosity.p2p_network.server.message.Message;
 import just.curiosity.p2p_network.server.message.MessageType;
 import just.curiosity.p2p_network.server.util.AESCipher;
+import just.curiosity.p2p_network.server.util.ByteArraySplitter;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 
@@ -24,8 +25,8 @@ import org.apache.commons.io.FileUtils;
 @WithType(MessageType.GET_DATA)
 public class Handler_GetData implements Handler {
   public void handle(Server server, Socket socket, Message message) {
-    final String[] payload = new String(message.payload()).split("\n", 2);
-    if (payload.length != 2) {
+    final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 2);
+    if (payload.size() != 2) {
       return;
     }
 
@@ -35,7 +36,7 @@ public class Handler_GetData implements Handler {
     // to go through the list of nodes and request data from
     // them using the identifier sent by the client.
     if (socketAddress.equals("127.0.0.1")) {
-      final String fileName = DigestUtils.sha256Hex(payload[1]);
+      final String fileName = DigestUtils.sha256Hex(payload.get(1));
       final Set<String> nodes = server.nodes();
       final String[] shards;
       try {
@@ -73,11 +74,10 @@ public class Handler_GetData implements Handler {
               continue;
             }
 
-            final byte[] decryptedFoundShard = AESCipher.decrypt(foundShard, payload[0].getBytes());
+            final byte[] decryptedFoundShard = AESCipher.decrypt(foundShard, payload.get(0));
             // If the decrypt method returns null, then the wrong
             // key was used.
             if (decryptedFoundShard == null) {
-              System.out.println("DECRYPT RETURNS NULL");
               return;
             }
 
@@ -103,12 +103,14 @@ public class Handler_GetData implements Handler {
       return;
     }
 
-    final String shardName = DigestUtils.sha256Hex(payload[0] + socketAddress) + "_" + payload[1];
+    final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress) + "_" +
+      payload.getAsString(1);
+
     final byte[] shard;
     try {
       shard = FileUtils.readFileToByteArray(new File(Const.shardsDirectory + "/" + shardName));
     } catch (IOException e) {
-      System.out.println("Can't read shard \"" + payload[0] + "\".. " + e);
+      System.out.println("Can't read shard \"" + shardName + "\".. " + e);
       return;
     }
 

@@ -50,7 +50,6 @@ public final class AESCipher {
       cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
       return cipher.doFinal(data);
     } catch (Exception e) {
-      System.out.println(e);
       return null;
     }
   }
