@@ -13,6 +13,7 @@ import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithType;
 import just.curiosity.p2p_network.server.message.Message;
 import just.curiosity.p2p_network.server.message.MessageType;
+import just.curiosity.p2p_network.server.util.AESCipher;
 import org.apache.commons.codec.digest.DigestUtils;
 
 /**
@@ -28,16 +29,16 @@ public class Handler_SaveData implements Handler {
     // If the request to save data was sent from the local machine,
     // then you need to share this data between all nodes.
     if (socketAddress.equals("127.0.0.1")) {
-      final String pathToFile = new String(message.payload(), StandardCharsets.UTF_8);
+      final String[] payload = new String(message.payload(), StandardCharsets.UTF_8).split("\n");
       String fileContent;
       try {
-        fileContent = server.readFromFile(pathToFile);
+        fileContent = server.readFromFile(payload[1]);
       } catch (IOException e) {
-        System.out.println("Can't read file \"" + pathToFile + "\".. " + e);
+        System.out.println("Can't read file \"" + payload[1] + "\".. " + e);
         return;
       }
 
-      final String fileNameHash = DigestUtils.sha256Hex(new File(pathToFile).getName());
+      final String fileNameHash = DigestUtils.sha256Hex(new File(payload[1]).getName());
       final byte[] data = fileContent.getBytes();
       final byte[][] shards = new byte[(int) Math.ceil((double) data.length / Const.SHARD_SIZE)][Const.SHARD_SIZE];
       final int[] indices = new int[shards.length];
@@ -61,7 +62,7 @@ public class Handler_SaveData implements Handler {
           outputStream.write('\n');
           outputStream.write(String.valueOf(i).getBytes());
           outputStream.write('\n');
-          outputStream.write(shards[i]);
+          outputStream.write(AESCipher.encrypt(shards[i], payload[0]));
           server.sendToAll(new Message(MessageType.SAVE_DATA, outputStream.toByteArray()));
         } catch (IOException e) {
           throw new RuntimeException(e);
@@ -71,7 +72,7 @@ public class Handler_SaveData implements Handler {
         // shards and their contents.
         shardsInfo[indices[i]] = i + "," + DigestUtils.sha256Hex(shards[i]);
 
-        System.out.println("SHARED SHARD: " + DigestUtils.sha256Hex(new File(pathToFile).getName()) + "_" + i); // TODO: remove debug log
+        System.out.println("SHARED SHARD: " + DigestUtils.sha256Hex(new File(payload[1]).getName()) + "_" + i); // TODO: remove debug log
       }
 
       try (final FileOutputStream out = new FileOutputStream(Const.sharedDirectory + "/" + fileNameHash)) {
