@@ -19,7 +19,7 @@ import just.curiosity.p2p_network.server.message.MessageType;
 @CMDPattern("save .*")
 public class Handler_Save extends CMDHandler {
   @Override
-  public void handle(String[] args) {
+  public void handle(String[] args, String secret) {
     if (!new File(args[1]).exists()) {
       System.out.println("File \"" + args[1] + "\" does not exist..");
       return;

@@ -25,16 +25,30 @@ public class CMDHandlerProcessor {
 
   public void process(String[] args) {
     for (CMDHandler handler : handlers) {
-      String value = String.join(" ", args);
-      Class<?> clazz = handler.getClass();
+      final String value = String.join(" ", args);
+      final Class<?> clazz = handler.getClass();
       if (clazz.isAnnotationPresent(CMDPattern.class)) {
-        CMDPattern ann = clazz.getAnnotation(CMDPattern.class);
+        final CMDPattern ann = clazz.getAnnotation(CMDPattern.class);
         if (value.matches(ann.value())) {
-          handler.handle(args);
+          System.out.print("[>] enter secret: ");
+          final String secret = new String(System.console().readPassword());
+          if (secret.length() < 6) {
+            try {
+              Thread.sleep(1000);
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
+            System.out.println("[warn]: secret is too short.. min length = 6");
+            return;
+          }
+
+          handler.handle(args, secret);
           break;
         }
-      } else
-        System.out.println("[warn]: handler \"" + clazz.getName() + "\" has no annotation \"" + CMDPattern.class.getName() + "\".. skipped");
+      } else {
+        System.out.println("[warn]: handler \"" + clazz.getName() + "\" has no annotation \"" +
+          CMDPattern.class.getName() + "\".. skipped");
+      }
     }
   }
 }

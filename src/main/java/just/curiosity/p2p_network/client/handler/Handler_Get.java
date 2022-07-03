@@ -19,7 +19,7 @@ import just.curiosity.p2p_network.server.message.MessageType;
 @CMDPattern("get .*")
 public class Handler_Get extends CMDHandler {
   @Override
-  public void handle(String[] args) {
+  public void handle(String[] args, String secret) {
     try (final Socket nodeSocket = new Socket("127.0.0.1", Const.PORT)) {
       final OutputStream outputStream = nodeSocket.getOutputStream();
       outputStream.write(new Message(MessageType.GET_DATA, args[1].getBytes()).build());
