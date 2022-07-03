@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import just.curiosity.p2p_network.constants.Const;
@@ -14,7 +14,9 @@ import just.curiosity.p2p_network.server.annotation.WithType;
 import just.curiosity.p2p_network.server.message.Message;
 import just.curiosity.p2p_network.server.message.MessageType;
 import just.curiosity.p2p_network.server.util.AESCipher;
+import just.curiosity.p2p_network.server.util.ArrayUtil;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 
 /**
  * @author zerdicorp
@@ -29,17 +31,21 @@ public class Handler_SaveData implements Handler {
     // If the request to save data was sent from the local machine,
     // then you need to share this data between all nodes.
     if (socketAddress.equals("127.0.0.1")) {
-      final String[] payload = new String(message.payload(), StandardCharsets.UTF_8).split("\n");
-      String fileContent;
-      try {
-        fileContent = server.readFromFile(payload[1]);
-      } catch (IOException e) {
-        System.out.println("Can't read file \"" + payload[1] + "\".. " + e);
+      final String[] payload = new String(message.payload()).split("\n", 2);
+      if (payload.length != 2) {
         return;
       }
 
-      final String fileNameHash = DigestUtils.sha256Hex(new File(payload[1]).getName());
-      final byte[] data = fileContent.getBytes();
+      final File file = new File(payload[1]);
+      final byte[] data;
+      try {
+        data = FileUtils.readFileToByteArray(file);
+      } catch (IOException e) {
+        System.out.println("Can't read file \"" + file.getPath() + "\".. " + e);
+        return;
+      }
+
+      final String fileNameHash = DigestUtils.sha256Hex(file.getName());
       final byte[][] shards = new byte[(int) Math.ceil((double) data.length / Const.SHARD_SIZE)][Const.SHARD_SIZE];
       final int[] indices = new int[shards.length];
       for (int i = 0; i < data.length; i += Const.SHARD_SIZE) {
@@ -56,13 +62,15 @@ public class Handler_SaveData implements Handler {
 
       final String[] shardsInfo = new String[shards.length];
       for (int i = 0; i < shards.length; i++) {
+        final byte[] encryptedShard = AESCipher.encrypt(shards[i], payload[0].getBytes());
+
         // Sending a shard to all nodes.
         try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
           outputStream.write(fileNameHash.getBytes());
           outputStream.write('\n');
           outputStream.write(String.valueOf(i).getBytes());
           outputStream.write('\n');
-          outputStream.write(AESCipher.encrypt(shards[i], payload[0]));
+          outputStream.write(encryptedShard);
           server.sendToAll(new Message(MessageType.SAVE_DATA, outputStream.toByteArray()));
         } catch (IOException e) {
           throw new RuntimeException(e);
@@ -70,9 +78,9 @@ public class Handler_SaveData implements Handler {
 
         // We save information about the correct sequence of
         // shards and their contents.
-        shardsInfo[indices[i]] = i + "," + DigestUtils.sha256Hex(shards[i]);
+        shardsInfo[indices[i]] = i + "," + DigestUtils.sha256Hex(encryptedShard);
 
-        System.out.println("SHARED SHARD: " + DigestUtils.sha256Hex(new File(payload[1]).getName()) + "_" + i); // TODO: remove debug log
+        System.out.println("SHARED SHARD: " + DigestUtils.sha256Hex(file.getName()) + "_" + i); // TODO: remove debug log
       }
 
       try (final FileOutputStream out = new FileOutputStream(Const.sharedDirectory + "/" + fileNameHash)) {
@@ -87,13 +95,19 @@ public class Handler_SaveData implements Handler {
     // machine), then someone shared the shard, and we need to
     // save it to disk.
 
-    final String[] payload = new String(message.payload(), StandardCharsets.UTF_8).split("\n", 3);
-    if (payload.length != 3) {
+    final List<byte[]> payload = ArrayUtil.split(message.payload(), (byte) '\n', 3);
+    if (payload.size() != 3) {
       return;
     }
 
-    final String shardName = DigestUtils.sha256Hex(payload[0] + socketAddress) + "_" + payload[1];
-    server.writeToFile(Const.shardsDirectory + "/" + shardName, payload[2]);
+    final String shardName = DigestUtils.sha256Hex(new String(payload.get(0)) + socketAddress) + "_" +
+      new String(payload.get(1));
+
+    try {
+      FileUtils.writeByteArrayToFile(new File(Const.shardsDirectory + "/" + shardName), payload.get(2));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
     System.out.println("SAVED SHARD: " + shardName); // TODO: remove debug log
   }

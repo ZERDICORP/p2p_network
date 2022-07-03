@@ -20,7 +20,7 @@ public class Handler_AddNode implements Handler {
   public void handle(Server server, Socket socket, Message message) {
     final byte[] payload = message.payload();
     final Set<String> nodes = server.nodes();
-    nodes.add(new String(payload, 0, payload.length, StandardCharsets.UTF_8));
+    nodes.add(new String(payload, 0, payload.length));
 
     System.out.println("NODES AFTER ADDING NEW NODE: " + nodes); // TODO: remove debug log
   }
