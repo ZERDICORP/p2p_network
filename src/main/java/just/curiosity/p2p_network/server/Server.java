@@ -1,10 +1,7 @@
 package just.curiosity.p2p_network.server;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -16,7 +13,9 @@ import just.curiosity.p2p_network.server.annotation.WithType;
 import just.curiosity.p2p_network.server.handler.Handler;
 import just.curiosity.p2p_network.server.handler.Handler_AddNode;
 import just.curiosity.p2p_network.server.handler.Handler_CloneNodes;
+import just.curiosity.p2p_network.server.handler.Handler_DeleteData;
 import just.curiosity.p2p_network.server.handler.Handler_GetData;
+import just.curiosity.p2p_network.server.handler.Handler_RenameData;
 import just.curiosity.p2p_network.server.handler.Handler_SaveData;
 import just.curiosity.p2p_network.server.message.Message;
 import just.curiosity.p2p_network.server.message.MessageType;
@@ -38,6 +37,8 @@ public class Server {
     handlers.add(new Handler_AddNode());
     handlers.add(new Handler_SaveData());
     handlers.add(new Handler_GetData());
+    handlers.add(new Handler_DeleteData());
+    handlers.add(new Handler_RenameData());
   }
 
   public Server(int port) {
@@ -61,19 +62,6 @@ public class Server {
           System.out.println("Can't send message to address \"" + nodeAddress + "\".. " + e);
         }
       });
-  }
-
-  public String readFromFile(String path) throws IOException {
-    final StringBuilder stringBuilder = new StringBuilder();
-    try (final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(
-      new FileInputStream(path)))) {
-      String line;
-      while ((line = bufferedReader.readLine()) != null) {
-        stringBuilder.append(line).append("\n");
-      }
-    }
-    stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-    return stringBuilder.toString();
   }
 
   private int headerSize(byte[] buffer, int size) {

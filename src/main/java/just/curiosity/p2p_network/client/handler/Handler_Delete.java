@@ -1,7 +1,6 @@
 package just.curiosity.p2p_network.client.handler;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Socket;
 import just.curiosity.p2p_network.client.zer.cmd.CMDHandler;
 import just.curiosity.p2p_network.client.zer.cmd.CMDPattern;
@@ -12,27 +11,17 @@ import just.curiosity.p2p_network.server.message.MessageType;
 /**
  * @author zerdicorp
  * @project p2p_network
- * @created 6/30/22 - 12:25 PM
+ * @created 7/4/22 - 9:19 AM
  */
 
-@CMDPattern("get .*")
-public class Handler_Get extends CMDHandler {
+@CMDPattern("del .*")
+public class Handler_Delete extends CMDHandler {
   @Override
   public void handle(String[] args, String secret) {
     final String payload = secret + "\n" + args[1];
     try (final Socket nodeSocket = new Socket("127.0.0.1", Const.PORT)) {
-      final OutputStream outputStream = nodeSocket.getOutputStream();
-      outputStream.write(new Message(MessageType.GET_DATA, payload.getBytes()).build());
-
-      final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
-      final int size = nodeSocket.getInputStream().read(buffer);
-      if (size == -1) {
-        System.out.println("File \"" + args[1] + "\" not found..");
-        return;
-      }
-
-      System.out.println("File \"" + args[1] + "\" was found: " +
-        new String(buffer, 0, size));
+      nodeSocket.getOutputStream()
+        .write(new Message(MessageType.DELETE_DATA, payload.getBytes()).build());
     } catch (IOException e) {
       System.out.println("Can't send message to local node.. " + e);
     }

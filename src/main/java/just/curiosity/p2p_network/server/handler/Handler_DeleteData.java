@@ -19,11 +19,11 @@ import org.apache.commons.io.FileUtils;
 /**
  * @author zerdicorp
  * @project p2p_network
- * @created 6/30/22 - 12:28 PM
+ * @created 7/4/22 - 9:21 AM
  */
 
-@WithType(MessageType.GET_DATA)
-public class Handler_GetData implements Handler {
+@WithType(MessageType.DELETE_DATA)
+public class Handler_DeleteData implements Handler {
   public void handle(Server server, Socket socket, Message message) {
     final String socketAddress = socket.getInetAddress().toString().split("/")[1];
 
@@ -36,30 +36,28 @@ public class Handler_GetData implements Handler {
         return;
       }
 
-      final String fileName = DigestUtils.sha256Hex(payload.get(1));
+      final String fileNameHash = DigestUtils.sha256Hex(payload.get(1));
+      final File sharedFile = new File(Const.sharedDirectory + "/" + fileNameHash);
       final Set<String> nodes = server.nodes();
       final String[] shards;
       try {
-        final String sharedContent = FileUtils.readFileToString(
-          new File(Const.sharedDirectory + "/" + fileName), StandardCharsets.UTF_8);
+        final String sharedContent = FileUtils.readFileToString(sharedFile, StandardCharsets.UTF_8);
         shards = sharedContent.split("\n");
       } catch (IOException e) {
-        System.out.println("Can't read signature \"" + fileName + "\".. " + e);
+        System.out.println("Can't read shared \"" + fileNameHash + "\".. " + e);
         return;
       }
 
-      final StringBuilder originalFileContent = new StringBuilder();
       for (String shardInfo : shards) {
         final String[] shardInfoArr = shardInfo.split(",");
-        final String shardName = DigestUtils.sha256Hex(fileName + shardInfoArr[0]);
+        final String shardName = DigestUtils.sha256Hex(fileNameHash + shardInfoArr[0]);
 
-        System.out.println("REQUESTING SHARD: " + shardName); // TODO: remove debug log
+        System.out.println("DELETING SHARD: " + shardName); // TODO: remove debug log
 
-        String shard = null;
         for (String nodeAddress : nodes) {
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-            nodeSocket.getOutputStream().write(new Message(MessageType.GET_DATA, shardName.getBytes())
-              .build());
+            nodeSocket.getOutputStream()
+              .write(new Message(MessageType.GET_DATA, shardName.getBytes()).build());
 
             final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
             final int size = nodeSocket.getInputStream().read(buffer);
@@ -68,38 +66,31 @@ public class Handler_GetData implements Handler {
             }
 
             final byte[] foundShard = Arrays.copyOfRange(buffer, 0, size);
-            // If the hash of the found shard does not match the
-            // signature, then the shard has been modified and is
-            // no longer valid. Skip and continue the search.
             if (!shardInfoArr[1].equals(DigestUtils.sha256Hex(foundShard))) {
               continue;
             }
 
             final byte[] decryptedFoundShard = AESCipher.decrypt(foundShard, payload.get(0));
-            // If the decrypt method returns null, then the wrong
-            // key was used.
             if (decryptedFoundShard == null) {
               return;
             }
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
 
-            shard = new String(decryptedFoundShard);
-            break;
+          try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
+            nodeSocket.getOutputStream()
+              .write(new Message(MessageType.DELETE_DATA, shardName.getBytes()).build());
           } catch (IOException e) {
             throw new RuntimeException(e);
           }
         }
-
-        if (shard == null) {
-          return;
-        }
-
-        originalFileContent.append(shard);
       }
 
       try {
-        socket.getOutputStream().write(originalFileContent.toString().getBytes());
+        FileUtils.delete(sharedFile);
       } catch (IOException e) {
-        System.out.println("Can't write to socket output stream.. " + e);
+        System.out.println("Can't delete shared \"" + fileNameHash + "\".. " + e);
       }
       return;
     }
@@ -110,19 +101,11 @@ public class Handler_GetData implements Handler {
     }
 
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
-
-    final byte[] shard;
     try {
-      shard = FileUtils.readFileToByteArray(new File(Const.shardsDirectory + "/" + shardName));
+      FileUtils.delete(new File(Const.shardsDirectory + "/" + shardName));
+      System.out.println("DELETED SHARD: " + shardName); // TODO: remove debug log
     } catch (IOException e) {
-      System.out.println("Can't read shard \"" + shardName + "\".. " + e);
-      return;
-    }
-
-    try {
-      socket.getOutputStream().write(shard);
-    } catch (IOException e) {
-      System.out.println("Can't write to socket output stream.. " + e);
+      System.out.println("Can't delete shard \"" + shardName + "\".. " + e);
     }
   }
 }
