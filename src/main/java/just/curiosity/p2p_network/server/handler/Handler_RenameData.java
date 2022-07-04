@@ -19,11 +19,11 @@ import org.apache.commons.io.FileUtils;
 /**
  * @author zerdicorp
  * @project p2p_network
- * @created 7/4/22 - 9:21 AM
+ * @created 7/4/22 - 9:55 AM
  */
 
-@WithType(MessageType.DELETE_DATA)
-public class Handler_DeleteData implements Handler {
+@WithType(MessageType.RENAME_DATA)
+public class Handler_RenameData implements Handler {
   public void handle(Server server, Socket socket, Message message) {
     final String socketAddress = socket.getInetAddress().toString().split("/")[1];
 
@@ -31,13 +31,15 @@ public class Handler_DeleteData implements Handler {
     // to go through the list of nodes and request data from
     // them using the identifier sent by the client.
     if (socketAddress.equals("127.0.0.1")) {
-      final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 2);
-      if (payload.size() != 2) {
+      final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 3);
+      if (payload.size() != 3) {
         return;
       }
 
       final String fileNameHash = DigestUtils.sha256Hex(payload.get(1));
+      final String newFileNameHash = DigestUtils.sha256Hex(payload.get(2));
       final File sharedFile = new File(Const.sharedDirectory + "/" + fileNameHash);
+      final File newSharedFile = new File(Const.sharedDirectory + "/" + newFileNameHash);
       final Set<String> nodes = server.nodes();
       final String[] shards;
       try {
@@ -51,8 +53,9 @@ public class Handler_DeleteData implements Handler {
       for (String shardInfo : shards) {
         final String[] shardInfoArr = shardInfo.split(",");
         final String shardName = DigestUtils.sha256Hex(fileNameHash + shardInfoArr[0]);
+        final String newShardName = DigestUtils.sha256Hex(newFileNameHash + shardInfoArr[0]);
 
-        System.out.println("DELETING SHARD: " + shardName); // TODO: remove debug log
+        System.out.println("RENAMING SHARD: " + shardName + " -> " + newShardName); // TODO: remove debug log
 
         for (String nodeAddress : nodes) {
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
@@ -80,7 +83,7 @@ public class Handler_DeleteData implements Handler {
 
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
             nodeSocket.getOutputStream()
-              .write(new Message(MessageType.DELETE_DATA, shardName.getBytes()).build());
+              .write(new Message(MessageType.RENAME_DATA, (shardName + "\n" + newShardName).getBytes()).build());
           } catch (IOException e) {
             throw new RuntimeException(e);
           }
@@ -88,24 +91,26 @@ public class Handler_DeleteData implements Handler {
       }
 
       try {
-        FileUtils.delete(sharedFile);
+        FileUtils.moveFile(sharedFile, newSharedFile);
       } catch (IOException e) {
-        System.out.println("Can't delete shared \"" + fileNameHash + "\".. " + e);
+        System.out.println("Can't rename shared \"" + fileNameHash + "\".. " + e);
       }
       return;
     }
 
-    final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 1);
-    if (payload.size() != 1) {
+    final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 2);
+    if (payload.size() != 2) {
       return;
     }
 
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
+    final String newShardName = DigestUtils.sha256Hex(payload.getAsString(1) + socketAddress);
     try {
-      FileUtils.delete(new File(Const.shardsDirectory + "/" + shardName));
-      System.out.println("DELETED SHARD: " + shardName); // TODO: remove debug log
+      FileUtils.moveFile(new File(Const.shardsDirectory + "/" + shardName),
+        new File(Const.shardsDirectory + "/" + newShardName));
+      System.out.println("RENAMED SHARD: " + shardName + " -> " + newShardName); // TODO: remove debug log
     } catch (IOException e) {
-      System.out.println("Can't delete shard \"" + shardName + "\".. " + e);
+      System.out.println("Can't rename shard \"" + shardName + "\".. " + e);
     }
   }
 }

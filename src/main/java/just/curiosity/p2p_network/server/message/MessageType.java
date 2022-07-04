@@ -11,5 +11,6 @@ public enum MessageType {
   ADD_NODE,
   SAVE_DATA,
   GET_DATA,
-  DELETE_DATA
+  DELETE_DATA,
+  RENAME_DATA
 }
