@@ -25,17 +25,17 @@ import org.apache.commons.io.FileUtils;
 @WithType(MessageType.GET_DATA)
 public class Handler_GetData implements Handler {
   public void handle(Server server, Socket socket, Message message) {
-    final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 2);
-    if (payload.size() != 2) {
-      return;
-    }
-
     final String socketAddress = socket.getInetAddress().toString().split("/")[1];
 
     // If the request came from the local host, then you need
     // to go through the list of nodes and request data from
     // them using the identifier sent by the client.
     if (socketAddress.equals("127.0.0.1")) {
+      final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 2);
+      if (payload.size() != 2) {
+        return;
+      }
+
       final String fileName = DigestUtils.sha256Hex(payload.get(1));
       final Set<String> nodes = server.nodes();
       final String[] shards;
@@ -51,13 +51,14 @@ public class Handler_GetData implements Handler {
       final StringBuilder originalFileContent = new StringBuilder();
       for (String shardInfo : shards) {
         final String[] shardInfoArr = shardInfo.split(",");
+        final String shardName = DigestUtils.sha256Hex(fileName + shardInfoArr[0]);
 
-        System.out.println("REQUESTING SHARD: " + fileName + "_" + shardInfoArr[0]); // TODO: remove debug log
+        System.out.println("REQUESTING SHARD: " + shardName); // TODO: remove debug log
 
         String shard = null;
         for (String nodeAddress : nodes) {
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-            nodeSocket.getOutputStream().write(new Message(MessageType.GET_DATA, (fileName + "\n" + shardInfoArr[0]).getBytes())
+            nodeSocket.getOutputStream().write(new Message(MessageType.GET_DATA, shardName.getBytes())
               .build());
 
             final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
@@ -103,8 +104,12 @@ public class Handler_GetData implements Handler {
       return;
     }
 
-    final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress) + "_" +
-      payload.getAsString(1);
+    final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 1);
+    if (payload.size() != 1) {
+      return;
+    }
+
+    final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
 
     final byte[] shard;
     try {

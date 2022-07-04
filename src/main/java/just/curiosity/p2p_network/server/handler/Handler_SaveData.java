@@ -61,13 +61,12 @@ public class Handler_SaveData implements Handler {
 
       final String[] shardsInfo = new String[shards.length];
       for (int i = 0; i < shards.length; i++) {
+        final String shardName = DigestUtils.sha256Hex(fileNameHash + i);
         final byte[] encryptedShard = AESCipher.encrypt(shards[i], payload.get(0));
 
         // Sending a shard to all nodes.
         try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-          outputStream.write(fileNameHash.getBytes());
-          outputStream.write('\n');
-          outputStream.write(String.valueOf(i).getBytes());
+          outputStream.write(shardName.getBytes());
           outputStream.write('\n');
           outputStream.write(encryptedShard);
           server.sendToAll(new Message(MessageType.SAVE_DATA, outputStream.toByteArray()));
@@ -79,7 +78,7 @@ public class Handler_SaveData implements Handler {
         // shards and their contents.
         shardsInfo[indices[i]] = i + "," + DigestUtils.sha256Hex(encryptedShard);
 
-        System.out.println("SHARED SHARD: " + DigestUtils.sha256Hex(file.getName()) + "_" + i); // TODO: remove debug log
+        System.out.println("SHARED SHARD: " + shardName); // TODO: remove debug log
       }
 
       try (final FileOutputStream out = new FileOutputStream(Const.sharedDirectory + "/" + fileNameHash)) {
@@ -94,16 +93,15 @@ public class Handler_SaveData implements Handler {
     // machine), then someone shared the shard, and we need to
     // save it to disk.
 
-    final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 3);
-    if (payload.size() != 3) {
+    final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 2);
+    if (payload.size() != 2) {
       return;
     }
 
-    final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress) + "_" +
-      payload.getAsString(1);
+    final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
 
     try {
-      FileUtils.writeByteArrayToFile(new File(Const.shardsDirectory + "/" + shardName), payload.get(2));
+      FileUtils.writeByteArrayToFile(new File(Const.shardsDirectory + "/" + shardName), payload.get(1));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
