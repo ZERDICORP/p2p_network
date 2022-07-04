@@ -4,12 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Set;
 import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithType;
 import just.curiosity.p2p_network.server.message.Message;
 import just.curiosity.p2p_network.server.message.MessageType;
+import just.curiosity.p2p_network.server.util.AESCipher;
 import just.curiosity.p2p_network.server.util.ByteArraySplitter;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -34,26 +36,48 @@ public class Handler_DeleteData implements Handler {
         return;
       }
 
-      final String fileName = DigestUtils.sha256Hex(payload.get(1));
-      final File sharedFile = new File(Const.sharedDirectory + "/" + fileName);
+      final String fileNameHash = DigestUtils.sha256Hex(payload.get(1));
+      final File sharedFile = new File(Const.sharedDirectory + "/" + fileNameHash);
       final Set<String> nodes = server.nodes();
       final String[] shards;
       try {
         final String sharedContent = FileUtils.readFileToString(sharedFile, StandardCharsets.UTF_8);
         shards = sharedContent.split("\n");
-        FileUtils.delete(sharedFile);
       } catch (IOException e) {
-        System.out.println("Can't read shared \"" + fileName + "\".. " + e);
+        System.out.println("Can't read shared \"" + fileNameHash + "\".. " + e);
         return;
       }
 
       for (String shardInfo : shards) {
         final String[] shardInfoArr = shardInfo.split(",");
-        final String shardName = DigestUtils.sha256Hex(fileName + shardInfoArr[0]);
+        final String shardName = DigestUtils.sha256Hex(fileNameHash + shardInfoArr[0]);
 
         System.out.println("DELETING SHARD: " + shardName); // TODO: remove debug log
 
         for (String nodeAddress : nodes) {
+          try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
+            nodeSocket.getOutputStream()
+              .write(new Message(MessageType.GET_DATA, shardName.getBytes()).build());
+
+            final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
+            final int size = nodeSocket.getInputStream().read(buffer);
+            if (size == -1) {
+              continue;
+            }
+
+            final byte[] foundShard = Arrays.copyOfRange(buffer, 0, size);
+            if (!shardInfoArr[1].equals(DigestUtils.sha256Hex(foundShard))) {
+              continue;
+            }
+
+            final byte[] decryptedFoundShard = AESCipher.decrypt(foundShard, payload.get(0));
+            if (decryptedFoundShard == null) {
+              return;
+            }
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
             nodeSocket.getOutputStream()
               .write(new Message(MessageType.DELETE_DATA, shardName.getBytes()).build());
@@ -61,6 +85,12 @@ public class Handler_DeleteData implements Handler {
             throw new RuntimeException(e);
           }
         }
+      }
+
+      try {
+        FileUtils.delete(sharedFile);
+      } catch (IOException e) {
+        System.out.println("Can't delete shared \"" + fileNameHash + "\".. " + e);
       }
       return;
     }
