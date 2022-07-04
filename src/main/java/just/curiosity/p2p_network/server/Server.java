@@ -63,19 +63,6 @@ public class Server {
       });
   }
 
-  public String readFromFile(String path) throws IOException {
-    final StringBuilder stringBuilder = new StringBuilder();
-    try (final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(
-      new FileInputStream(path)))) {
-      String line;
-      while ((line = bufferedReader.readLine()) != null) {
-        stringBuilder.append(line).append("\n");
-      }
-    }
-    stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-    return stringBuilder.toString();
-  }
-
   private int headerSize(byte[] buffer, int size) {
     int count = 0;
     for (int i = 0; i < size; ++i)
