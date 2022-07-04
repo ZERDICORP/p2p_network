@@ -10,5 +10,6 @@ public enum MessageType {
   CLONE_NODES,
   ADD_NODE,
   SAVE_DATA,
-  GET_DATA
+  GET_DATA,
+  DELETE_DATA
 }

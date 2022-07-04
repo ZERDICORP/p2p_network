@@ -13,6 +13,7 @@ import just.curiosity.p2p_network.server.annotation.WithType;
 import just.curiosity.p2p_network.server.handler.Handler;
 import just.curiosity.p2p_network.server.handler.Handler_AddNode;
 import just.curiosity.p2p_network.server.handler.Handler_CloneNodes;
+import just.curiosity.p2p_network.server.handler.Handler_DeleteData;
 import just.curiosity.p2p_network.server.handler.Handler_GetData;
 import just.curiosity.p2p_network.server.handler.Handler_SaveData;
 import just.curiosity.p2p_network.server.message.Message;
@@ -35,6 +36,7 @@ public class Server {
     handlers.add(new Handler_AddNode());
     handlers.add(new Handler_SaveData());
     handlers.add(new Handler_GetData());
+    handlers.add(new Handler_DeleteData());
   }
 
   public Server(int port) {
