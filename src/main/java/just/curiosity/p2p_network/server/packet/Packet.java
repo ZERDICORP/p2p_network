@@ -2,6 +2,7 @@ package just.curiosity.p2p_network.server.packet;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import just.curiosity.p2p_network.constants.PacketType;
 
 /**
  * @author zerdicorp

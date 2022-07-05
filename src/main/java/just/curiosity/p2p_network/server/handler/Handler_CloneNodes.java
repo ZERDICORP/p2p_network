@@ -7,7 +7,7 @@ import java.util.Set;
 import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithPacketType;
 import just.curiosity.p2p_network.server.packet.Packet;
-import just.curiosity.p2p_network.server.packet.PacketType;
+import just.curiosity.p2p_network.constants.PacketType;
 
 /**
  * @author zerdicorp

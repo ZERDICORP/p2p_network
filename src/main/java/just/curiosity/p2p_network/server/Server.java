@@ -18,7 +18,7 @@ import just.curiosity.p2p_network.server.handler.Handler_GetData;
 import just.curiosity.p2p_network.server.handler.Handler_RenameData;
 import just.curiosity.p2p_network.server.handler.Handler_SaveData;
 import just.curiosity.p2p_network.server.packet.Packet;
-import just.curiosity.p2p_network.server.packet.PacketType;
+import just.curiosity.p2p_network.constants.PacketType;
 
 /**
  * @author zerdicorp

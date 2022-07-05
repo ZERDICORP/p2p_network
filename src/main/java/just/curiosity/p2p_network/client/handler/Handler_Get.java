@@ -7,7 +7,7 @@ import just.curiosity.p2p_network.client.zer.cmd.CMDHandler;
 import just.curiosity.p2p_network.client.zer.cmd.CMDPattern;
 import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.server.packet.Packet;
-import just.curiosity.p2p_network.server.packet.PacketType;
+import just.curiosity.p2p_network.constants.PacketType;
 
 /**
  * @author zerdicorp
