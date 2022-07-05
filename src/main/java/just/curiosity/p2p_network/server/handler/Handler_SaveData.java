@@ -9,9 +9,9 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.server.Server;
-import just.curiosity.p2p_network.server.annotation.WithType;
-import just.curiosity.p2p_network.server.message.Message;
-import just.curiosity.p2p_network.server.message.MessageType;
+import just.curiosity.p2p_network.server.annotation.WithPacketType;
+import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.util.AESCipher;
 import just.curiosity.p2p_network.server.util.ByteArraySplitter;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -23,14 +23,14 @@ import org.apache.commons.io.FileUtils;
  * @created 6/29/22 - 1:01 PM
  */
 
-@WithType(MessageType.SAVE_DATA)
+@WithPacketType(PacketType.SAVE_DATA)
 public class Handler_SaveData implements Handler {
-  public void handle(Server server, Socket socket, Message message) {
+  public void handle(Server server, Socket socket, Packet packet) {
     final String socketAddress = socket.getInetAddress().toString().split("/")[1];
     // If the request to save data was sent from the local machine,
     // then you need to share this data between all nodes.
     if (socketAddress.equals("127.0.0.1")) {
-      final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 2);
+      final ByteArraySplitter payload = new ByteArraySplitter(packet.payload(), (byte) '\n', 2);
       if (payload.size() != 2) {
         return;
       }
@@ -69,7 +69,7 @@ public class Handler_SaveData implements Handler {
           outputStream.write(shardName.getBytes());
           outputStream.write('\n');
           outputStream.write(encryptedShard);
-          server.sendToAll(new Message(MessageType.SAVE_DATA, outputStream.toByteArray()));
+          server.sendToAll(new Packet(PacketType.SAVE_DATA, outputStream.toByteArray()));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -81,7 +81,7 @@ public class Handler_SaveData implements Handler {
         System.out.println("SHARED SHARD: " + shardName); // TODO: remove debug log
       }
 
-      try (final FileOutputStream out = new FileOutputStream(Const.sharedDirectory + "/" + fileNameHash)) {
+      try (final FileOutputStream out = new FileOutputStream(Const.META_DIRECTORY + "/" + fileNameHash)) {
         out.write(String.join("\n", shardsInfo).getBytes());
       } catch (IOException e) {
         throw new RuntimeException(e);
@@ -93,7 +93,7 @@ public class Handler_SaveData implements Handler {
     // machine), then someone shared the shard, and we need to
     // save it to disk.
 
-    final ByteArraySplitter payload = new ByteArraySplitter(message.payload(), (byte) '\n', 2);
+    final ByteArraySplitter payload = new ByteArraySplitter(packet.payload(), (byte) '\n', 2);
     if (payload.size() != 2) {
       return;
     }
@@ -101,7 +101,7 @@ public class Handler_SaveData implements Handler {
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
 
     try {
-      FileUtils.writeByteArrayToFile(new File(Const.shardsDirectory + "/" + shardName), payload.get(1));
+      FileUtils.writeByteArrayToFile(new File(Const.SHARDS_DIRECTORY + "/" + shardName), payload.get(1));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

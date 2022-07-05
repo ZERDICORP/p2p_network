@@ -1,12 +1,11 @@
 package just.curiosity.p2p_network.server.handler;
 
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import just.curiosity.p2p_network.server.Server;
-import just.curiosity.p2p_network.server.annotation.WithType;
-import just.curiosity.p2p_network.server.message.Message;
-import just.curiosity.p2p_network.server.message.MessageType;
+import just.curiosity.p2p_network.server.annotation.WithPacketType;
+import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.constants.PacketType;
 
 /**
  * @author zerdicorp
@@ -14,11 +13,11 @@ import just.curiosity.p2p_network.server.message.MessageType;
  * @created 6/28/22 - 12:37 PM
  */
 
-@WithType(MessageType.ADD_NODE)
+@WithPacketType(PacketType.ADD_NODE)
 public class Handler_AddNode implements Handler {
   @Override
-  public void handle(Server server, Socket socket, Message message) {
-    final byte[] payload = message.payload();
+  public void handle(Server server, Socket socket, Packet packet) {
+    final byte[] payload = packet.payload();
     final Set<String> nodes = server.nodes();
     nodes.add(new String(payload, 0, payload.length));
 

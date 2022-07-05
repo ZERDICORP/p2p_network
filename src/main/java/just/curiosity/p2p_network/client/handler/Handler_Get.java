@@ -6,8 +6,8 @@ import java.net.Socket;
 import just.curiosity.p2p_network.client.zer.cmd.CMDHandler;
 import just.curiosity.p2p_network.client.zer.cmd.CMDPattern;
 import just.curiosity.p2p_network.constants.Const;
-import just.curiosity.p2p_network.server.message.Message;
-import just.curiosity.p2p_network.server.message.MessageType;
+import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.constants.PacketType;
 
 /**
  * @author zerdicorp
@@ -22,7 +22,7 @@ public class Handler_Get extends CMDHandler {
     final String payload = secret + "\n" + args[1];
     try (final Socket nodeSocket = new Socket("127.0.0.1", Const.PORT)) {
       final OutputStream outputStream = nodeSocket.getOutputStream();
-      outputStream.write(new Message(MessageType.GET_DATA, payload.getBytes()).build());
+      outputStream.write(new Packet(PacketType.GET_DATA, payload.getBytes()).build());
 
       final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
       final int size = nodeSocket.getInputStream().read(buffer);

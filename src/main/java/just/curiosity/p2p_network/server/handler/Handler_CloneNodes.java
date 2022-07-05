@@ -5,9 +5,9 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Set;
 import just.curiosity.p2p_network.server.Server;
-import just.curiosity.p2p_network.server.annotation.WithType;
-import just.curiosity.p2p_network.server.message.Message;
-import just.curiosity.p2p_network.server.message.MessageType;
+import just.curiosity.p2p_network.server.annotation.WithPacketType;
+import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.constants.PacketType;
 
 /**
  * @author zerdicorp
@@ -15,9 +15,9 @@ import just.curiosity.p2p_network.server.message.MessageType;
  * @created 6/27/22 - 10:53 AM
  */
 
-@WithType(MessageType.CLONE_NODES)
+@WithPacketType(PacketType.CLONE_NODES)
 public class Handler_CloneNodes implements Handler {
-  public void handle(Server server, Socket socket, Message message) {
+  public void handle(Server server, Socket socket, Packet packet) {
     final String socketAddress = socket.getInetAddress().toString().split("/")[1];
 
     final Set<String> nodes = server.nodes();
@@ -33,7 +33,7 @@ public class Handler_CloneNodes implements Handler {
 
     // Notifying the nodes that a new node has connected
     // and needs to be added to the list of nodes.
-    server.sendToAll(new Message(MessageType.ADD_NODE, socketAddress.getBytes()));
+    server.sendToAll(new Packet(PacketType.ADD_NODE, socketAddress.getBytes()));
 
     nodes.add(socketAddress);
   }

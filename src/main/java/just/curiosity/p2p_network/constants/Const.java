@@ -9,6 +9,6 @@ package just.curiosity.p2p_network.constants;
 public interface Const {
   int PORT = 8080;
   int SHARD_SIZE = 5;
-  String shardsDirectory = "./data/shards";
-  String sharedDirectory = "./data/shared";
+  String SHARDS_DIRECTORY = "./data/shards";
+  String META_DIRECTORY = "./data/meta";
 }

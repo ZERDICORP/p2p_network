@@ -17,8 +17,8 @@ import just.curiosity.p2p_network.server.Server;
 public class Main {
   static {
     try {
-      Files.createDirectories(Paths.get(Const.shardsDirectory));
-      Files.createDirectories(Paths.get(Const.sharedDirectory));
+      Files.createDirectories(Paths.get(Const.SHARDS_DIRECTORY));
+      Files.createDirectories(Paths.get(Const.META_DIRECTORY));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

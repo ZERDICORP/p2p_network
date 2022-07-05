@@ -1,4 +1,4 @@
-package just.curiosity.p2p_network.server.message;
+package just.curiosity.p2p_network.constants;
 
 /**
  * @author zerdicorp
@@ -6,7 +6,7 @@ package just.curiosity.p2p_network.server.message;
  * @created 6/27/22 - 10:05 AM
  */
 
-public enum MessageType {
+public enum PacketType {
   CLONE_NODES,
   ADD_NODE,
   SAVE_DATA,

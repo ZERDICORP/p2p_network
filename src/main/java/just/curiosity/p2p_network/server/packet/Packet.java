@@ -1,7 +1,8 @@
-package just.curiosity.p2p_network.server.message;
+package just.curiosity.p2p_network.server.packet;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import just.curiosity.p2p_network.constants.PacketType;
 
 /**
  * @author zerdicorp
@@ -9,19 +10,19 @@ import java.io.IOException;
  * @created 6/27/22 - 10:29 AM
  */
 
-public class Message {
-  private MessageType type;
+public class Packet {
+  private PacketType type;
   private int payloadSize;
   private byte[] payload = new byte[0];
 
-  public Message() {
+  public Packet() {
   }
 
-  public Message(MessageType type) {
+  public Packet(PacketType type) {
     this.type = type;
   }
 
-  public Message(MessageType type, byte[] payload) {
+  public Packet(PacketType type, byte[] payload) {
     this.type = type;
     this.payload = payload;
   }
@@ -44,7 +45,7 @@ public class Message {
         return false;
       }
 
-      type = MessageType.valueOf(lines[0]);
+      type = PacketType.valueOf(lines[0]);
       payloadSize = Integer.parseInt(lines[1]);
 
       return true;
@@ -53,7 +54,7 @@ public class Message {
     }
   }
 
-  public MessageType type() {
+  public PacketType type() {
     return type;
   }
 
