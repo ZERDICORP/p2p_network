@@ -38,8 +38,8 @@ public class Handler_RenameData implements Handler {
 
       final String fileNameHash = DigestUtils.sha256Hex(payload.get(1));
       final String newFileNameHash = DigestUtils.sha256Hex(payload.get(2));
-      final File sharedFile = new File(Const.sharedDirectory + "/" + fileNameHash);
-      final File newSharedFile = new File(Const.sharedDirectory + "/" + newFileNameHash);
+      final File sharedFile = new File(Const.SHARED_DIRECTORY + "/" + fileNameHash);
+      final File newSharedFile = new File(Const.SHARED_DIRECTORY + "/" + newFileNameHash);
       final Set<String> nodes = server.nodes();
       final String[] shards;
       try {
@@ -106,8 +106,8 @@ public class Handler_RenameData implements Handler {
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
     final String newShardName = DigestUtils.sha256Hex(payload.getAsString(1) + socketAddress);
     try {
-      FileUtils.moveFile(new File(Const.shardsDirectory + "/" + shardName),
-        new File(Const.shardsDirectory + "/" + newShardName));
+      FileUtils.moveFile(new File(Const.SHARDS_DIRECTORY + "/" + shardName),
+        new File(Const.SHARDS_DIRECTORY + "/" + newShardName));
       System.out.println("RENAMED SHARD: " + shardName + " -> " + newShardName); // TODO: remove debug log
     } catch (IOException e) {
       System.out.println("Can't rename shard \"" + shardName + "\".. " + e);

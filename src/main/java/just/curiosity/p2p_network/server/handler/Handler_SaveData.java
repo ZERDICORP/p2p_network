@@ -81,7 +81,7 @@ public class Handler_SaveData implements Handler {
         System.out.println("SHARED SHARD: " + shardName); // TODO: remove debug log
       }
 
-      try (final FileOutputStream out = new FileOutputStream(Const.sharedDirectory + "/" + fileNameHash)) {
+      try (final FileOutputStream out = new FileOutputStream(Const.SHARED_DIRECTORY + "/" + fileNameHash)) {
         out.write(String.join("\n", shardsInfo).getBytes());
       } catch (IOException e) {
         throw new RuntimeException(e);
@@ -101,7 +101,7 @@ public class Handler_SaveData implements Handler {
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
 
     try {
-      FileUtils.writeByteArrayToFile(new File(Const.shardsDirectory + "/" + shardName), payload.get(1));
+      FileUtils.writeByteArrayToFile(new File(Const.SHARDS_DIRECTORY + "/" + shardName), payload.get(1));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

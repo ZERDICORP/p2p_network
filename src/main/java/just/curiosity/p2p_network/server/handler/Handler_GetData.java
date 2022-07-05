@@ -41,7 +41,7 @@ public class Handler_GetData implements Handler {
       final String[] shards;
       try {
         final String sharedContent = FileUtils.readFileToString(
-          new File(Const.sharedDirectory + "/" + fileName), StandardCharsets.UTF_8);
+          new File(Const.SHARED_DIRECTORY + "/" + fileName), StandardCharsets.UTF_8);
         shards = sharedContent.split("\n");
       } catch (IOException e) {
         System.out.println("Can't read signature \"" + fileName + "\".. " + e);
@@ -113,7 +113,7 @@ public class Handler_GetData implements Handler {
 
     final byte[] shard;
     try {
-      shard = FileUtils.readFileToByteArray(new File(Const.shardsDirectory + "/" + shardName));
+      shard = FileUtils.readFileToByteArray(new File(Const.SHARDS_DIRECTORY + "/" + shardName));
     } catch (IOException e) {
       System.out.println("Can't read shard \"" + shardName + "\".. " + e);
       return;

@@ -37,7 +37,7 @@ public class Handler_DeleteData implements Handler {
       }
 
       final String fileNameHash = DigestUtils.sha256Hex(payload.get(1));
-      final File sharedFile = new File(Const.sharedDirectory + "/" + fileNameHash);
+      final File sharedFile = new File(Const.SHARED_DIRECTORY + "/" + fileNameHash);
       final Set<String> nodes = server.nodes();
       final String[] shards;
       try {
@@ -102,7 +102,7 @@ public class Handler_DeleteData implements Handler {
 
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
     try {
-      FileUtils.delete(new File(Const.shardsDirectory + "/" + shardName));
+      FileUtils.delete(new File(Const.SHARDS_DIRECTORY + "/" + shardName));
       System.out.println("DELETED SHARD: " + shardName); // TODO: remove debug log
     } catch (IOException e) {
       System.out.println("Can't delete shard \"" + shardName + "\".. " + e);
