@@ -4,7 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import just.curiosity.p2p_network.server.message.MessageType;
+import just.curiosity.p2p_network.server.packet.PacketType;
 
 /**
  * @author zerdicorp
@@ -14,6 +14,6 @@ import just.curiosity.p2p_network.server.message.MessageType;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface WithType {
-  MessageType value();
+public @interface WithPacketType {
+  PacketType value();
 }

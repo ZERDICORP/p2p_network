@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import just.curiosity.p2p_network.server.annotation.WithType;
+import just.curiosity.p2p_network.server.annotation.WithPacketType;
 import just.curiosity.p2p_network.server.handler.Handler;
 import just.curiosity.p2p_network.server.handler.Handler_AddNode;
 import just.curiosity.p2p_network.server.handler.Handler_CloneNodes;
@@ -17,8 +17,8 @@ import just.curiosity.p2p_network.server.handler.Handler_DeleteData;
 import just.curiosity.p2p_network.server.handler.Handler_GetData;
 import just.curiosity.p2p_network.server.handler.Handler_RenameData;
 import just.curiosity.p2p_network.server.handler.Handler_SaveData;
-import just.curiosity.p2p_network.server.message.Message;
-import just.curiosity.p2p_network.server.message.MessageType;
+import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.server.packet.PacketType;
 
 /**
  * @author zerdicorp
@@ -53,11 +53,11 @@ public class Server {
     return nodes;
   }
 
-  public void sendToAll(Message message) {
+  public void sendToAll(Packet packet) {
     nodes.parallelStream()
       .forEach(nodeAddress -> {
         try (final Socket nodeSocket = new Socket(nodeAddress, port)) {
-          nodeSocket.getOutputStream().write(message.build());
+          nodeSocket.getOutputStream().write(packet.build());
         } catch (IOException e) {
           System.out.println("Can't send message to address \"" + nodeAddress + "\".. " + e);
         }
@@ -89,13 +89,13 @@ public class Server {
 
     final int headerSize = headerSize(firstSegmentBuffer, firstSegmentSize);
 
-    Message message = new Message();
-    if (!message.parse(new String(firstSegmentBuffer, 0, headerSize))) {
+    Packet packet = new Packet();
+    if (!packet.parse(new String(firstSegmentBuffer, 0, headerSize))) {
       return;
     }
 
-    if (message.payloadSize() > 0) {
-      payloadBuffer = new byte[message.payloadSize()];
+    if (packet.payloadSize() > 0) {
+      payloadBuffer = new byte[packet.payloadSize()];
 
       int payloadBytesLengthInFirstSegment = firstSegmentSize - (headerSize + 1);
       for (int i = 0; i < payloadBytesLengthInFirstSegment && i < payloadBuffer.length; ++i) {
@@ -110,20 +110,20 @@ public class Server {
         offset += segmentSize;
       }
 
-      message.payload(payloadBuffer);
+      packet.payload(payloadBuffer);
     }
 
     for (Handler handler : handlers) {
       final Class<?> clazz = handler.getClass();
-      if (clazz.isAnnotationPresent(WithType.class)) {
-        final WithType ann = clazz.getAnnotation(WithType.class);
-        if (ann.value().equals(message.type())) {
-          handler.handle(this, socket, message);
+      if (clazz.isAnnotationPresent(WithPacketType.class)) {
+        final WithPacketType ann = clazz.getAnnotation(WithPacketType.class);
+        if (ann.value().equals(packet.type())) {
+          handler.handle(this, socket, packet);
           break;
         }
       } else {
         System.out.println("Handler \"" + clazz.getName() + "\" have no \"" +
-          WithType.class.getName() + "\" annotation.. ignore");
+          WithPacketType.class.getName() + "\" annotation.. ignore");
       }
     }
   }
@@ -131,7 +131,7 @@ public class Server {
   public void cloneNodes(String rootNodeAddress) throws IOException {
     nodes.add(rootNodeAddress);
     try (final Socket socket = new Socket(rootNodeAddress, port)) {
-      socket.getOutputStream().write(new Message(MessageType.CLONE_NODES).build());
+      socket.getOutputStream().write(new Packet(PacketType.CLONE_NODES).build());
 
       final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
       final int size = socket.getInputStream().read(buffer);
