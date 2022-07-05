@@ -38,8 +38,8 @@ public class Handler_RenameData implements Handler {
 
       final String fileNameHash = DigestUtils.sha256Hex(payload.get(1));
       final String newFileNameHash = DigestUtils.sha256Hex(payload.get(2));
-      final File sharedFile = new File(Const.SHARED_DIRECTORY + "/" + fileNameHash);
-      final File newSharedFile = new File(Const.SHARED_DIRECTORY + "/" + newFileNameHash);
+      final File sharedFile = new File(Const.META_DIRECTORY + "/" + fileNameHash);
+      final File newSharedFile = new File(Const.META_DIRECTORY + "/" + newFileNameHash);
       final Set<String> nodes = server.nodes();
       final String[] shards;
       try {

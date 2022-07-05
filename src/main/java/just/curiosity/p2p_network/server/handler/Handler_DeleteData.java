@@ -37,7 +37,7 @@ public class Handler_DeleteData implements Handler {
       }
 
       final String fileNameHash = DigestUtils.sha256Hex(payload.get(1));
-      final File sharedFile = new File(Const.SHARED_DIRECTORY + "/" + fileNameHash);
+      final File sharedFile = new File(Const.META_DIRECTORY + "/" + fileNameHash);
       final Set<String> nodes = server.nodes();
       final String[] shards;
       try {

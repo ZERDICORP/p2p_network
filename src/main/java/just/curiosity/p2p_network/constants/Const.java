@@ -10,5 +10,5 @@ public interface Const {
   int PORT = 8080;
   int SHARD_SIZE = 5;
   String SHARDS_DIRECTORY = "./data/shards";
-  String SHARED_DIRECTORY = "./data/shared";
+  String META_DIRECTORY = "./data/meta";
 }

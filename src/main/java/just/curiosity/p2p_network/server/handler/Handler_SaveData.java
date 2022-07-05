@@ -81,7 +81,7 @@ public class Handler_SaveData implements Handler {
         System.out.println("SHARED SHARD: " + shardName); // TODO: remove debug log
       }
 
-      try (final FileOutputStream out = new FileOutputStream(Const.SHARED_DIRECTORY + "/" + fileNameHash)) {
+      try (final FileOutputStream out = new FileOutputStream(Const.META_DIRECTORY + "/" + fileNameHash)) {
         out.write(String.join("\n", shardsInfo).getBytes());
       } catch (IOException e) {
         throw new RuntimeException(e);
