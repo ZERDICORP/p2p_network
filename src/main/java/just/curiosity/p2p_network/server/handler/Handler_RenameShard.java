@@ -15,11 +15,11 @@ import org.apache.commons.io.FileUtils;
 /**
  * @author zerdicorp
  * @project p2p_network
- * @created 6/29/22 - 1:01 PM
+ * @created 7/4/22 - 9:55 AM
  */
 
-@WithPacketType(PacketType.SAVE_DATA)
-public class Handler_SaveData implements Handler {
+@WithPacketType(PacketType.RENAME_SHARD)
+public class Handler_RenameShard implements Handler {
   @Override
   public void handle(Server server, Socket socket, String socketAddress, Packet packet) throws IOException {
     final ByteArraySplitter payload = new ByteArraySplitter(packet.payload(), (byte) '\n', 2);
@@ -28,8 +28,12 @@ public class Handler_SaveData implements Handler {
     }
 
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
-    FileUtils.writeByteArrayToFile(new File(Const.SHARDS_DIRECTORY + "/" + shardName), payload.get(1));
+    final String newShardName = DigestUtils.sha256Hex(payload.getAsString(1) + socketAddress);
+    final File shardFile = new File(Const.SHARDS_DIRECTORY + "/" + shardName);
+    final File newShardFile = new File(Const.SHARDS_DIRECTORY + "/" + newShardName);
 
-    System.out.println("SAVED SHARD: " + shardName); // TODO: remove debug log
+    FileUtils.moveFile(shardFile, newShardFile);
+
+    System.out.println("RENAMED SHARD: " + shardName + " -> " + newShardName); // TODO: remove debug log
   }
 }

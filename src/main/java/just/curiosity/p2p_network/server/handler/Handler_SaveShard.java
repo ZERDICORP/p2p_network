@@ -15,20 +15,21 @@ import org.apache.commons.io.FileUtils;
 /**
  * @author zerdicorp
  * @project p2p_network
- * @created 7/4/22 - 9:21 AM
+ * @created 6/29/22 - 1:01 PM
  */
 
-@WithPacketType(PacketType.DELETE_DATA)
-public class Handler_DeleteData implements Handler {
+@WithPacketType(PacketType.SAVE_SHARD)
+public class Handler_SaveShard implements Handler {
   @Override
   public void handle(Server server, Socket socket, String socketAddress, Packet packet) throws IOException {
-    final ByteArraySplitter payload = new ByteArraySplitter(packet.payload(), (byte) '\n', 1);
-    if (payload.size() != 1) {
+    final ByteArraySplitter payload = new ByteArraySplitter(packet.payload(), (byte) '\n', 2);
+    if (payload.size() != 2) {
       return;
     }
 
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
-    FileUtils.delete(new File(Const.SHARDS_DIRECTORY + "/" + shardName));
-    System.out.println("DELETED SHARD: " + shardName); // TODO: remove debug log
+    FileUtils.writeByteArrayToFile(new File(Const.SHARDS_DIRECTORY + "/" + shardName), payload.get(1));
+
+    System.out.println("SAVED SHARD: " + shardName); // TODO: remove debug log
   }
 }

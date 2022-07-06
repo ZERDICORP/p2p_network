@@ -65,7 +65,7 @@ public class Handler_RenameFile implements Handler {
 
         try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
           new Packet()
-            .withType(PacketType.RENAME_DATA)
+            .withType(PacketType.RENAME_SHARD)
             .withPayload(shardName + "\n" + newShardName)
             .sendTo(nodeSocket);
         }

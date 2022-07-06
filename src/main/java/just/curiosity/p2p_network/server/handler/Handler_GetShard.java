@@ -18,8 +18,8 @@ import org.apache.commons.io.FileUtils;
  * @created 6/30/22 - 12:28 PM
  */
 
-@WithPacketType(PacketType.GET_DATA)
-public class Handler_GetData implements Handler {
+@WithPacketType(PacketType.GET_SHARD)
+public class Handler_GetShard implements Handler {
   @Override
   public void handle(Server server, Socket socket, String socketAddress, Packet packet) throws IOException {
     final ByteArraySplitter payload = new ByteArraySplitter(packet.payload(), (byte) '\n', 1);

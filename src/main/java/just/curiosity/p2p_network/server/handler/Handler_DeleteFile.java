@@ -62,7 +62,7 @@ public class Handler_DeleteFile implements Handler {
 
         try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
           new Packet()
-            .withType(PacketType.DELETE_DATA)
+            .withType(PacketType.DELETE_SHARD)
             .withPayload(shardName.getBytes())
             .sendTo(nodeSocket);
         }

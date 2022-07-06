@@ -86,7 +86,7 @@ public class Handler_GetFile implements Handler {
                                 byte[] secret) throws IOException {
     try (final Socket nodeSocket = new Socket(nodeAddress, port)) {
       new Packet()
-        .withType(PacketType.GET_DATA)
+        .withType(PacketType.GET_SHARD)
         .withPayload(shardName.getBytes())
         .sendTo(nodeSocket);
 

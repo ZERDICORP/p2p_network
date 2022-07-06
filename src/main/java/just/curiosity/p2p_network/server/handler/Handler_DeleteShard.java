@@ -15,25 +15,20 @@ import org.apache.commons.io.FileUtils;
 /**
  * @author zerdicorp
  * @project p2p_network
- * @created 7/4/22 - 9:55 AM
+ * @created 7/4/22 - 9:21 AM
  */
 
-@WithPacketType(PacketType.RENAME_DATA)
-public class Handler_RenameData implements Handler {
+@WithPacketType(PacketType.DELETE_SHARD)
+public class Handler_DeleteShard implements Handler {
   @Override
   public void handle(Server server, Socket socket, String socketAddress, Packet packet) throws IOException {
-    final ByteArraySplitter payload = new ByteArraySplitter(packet.payload(), (byte) '\n', 2);
-    if (payload.size() != 2) {
+    final ByteArraySplitter payload = new ByteArraySplitter(packet.payload(), (byte) '\n', 1);
+    if (payload.size() != 1) {
       return;
     }
 
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
-    final String newShardName = DigestUtils.sha256Hex(payload.getAsString(1) + socketAddress);
-    final File shardFile = new File(Const.SHARDS_DIRECTORY + "/" + shardName);
-    final File newShardFile = new File(Const.SHARDS_DIRECTORY + "/" + newShardName);
-
-    FileUtils.moveFile(shardFile, newShardFile);
-
-    System.out.println("RENAMED SHARD: " + shardName + " -> " + newShardName); // TODO: remove debug log
+    FileUtils.delete(new File(Const.SHARDS_DIRECTORY + "/" + shardName));
+    System.out.println("DELETED SHARD: " + shardName); // TODO: remove debug log
   }
 }

@@ -83,7 +83,7 @@ public class Handler_SaveFile implements Handler {
         outputStream.write(encryptedShard);
 
         server.sendToAll(new Packet()
-          .withType(PacketType.SAVE_DATA)
+          .withType(PacketType.SAVE_SHARD)
           .withPayload(outputStream.toByteArray()));
       }
 
