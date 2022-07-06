@@ -1,10 +1,16 @@
 package just.curiosity.p2p_network.client;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import just.curiosity.p2p_network.client.annotation.ArgsPattern;
+import just.curiosity.p2p_network.client.handler.Handler;
 import just.curiosity.p2p_network.client.handler.Handler_Delete;
 import just.curiosity.p2p_network.client.handler.Handler_Get;
 import just.curiosity.p2p_network.client.handler.Handler_Rename;
 import just.curiosity.p2p_network.client.handler.Handler_Save;
-import just.curiosity.p2p_network.client.zer.cmd.CMDHandlerProcessor;
+import just.curiosity.p2p_network.constants.LogMsg;
+import just.curiosity.p2p_network.server.util.Logger;
 
 /**
  * @author zerdicorp
@@ -13,18 +19,41 @@ import just.curiosity.p2p_network.client.zer.cmd.CMDHandlerProcessor;
  */
 
 public class Client {
+  private final List<Handler> handlers = new ArrayList<>();
+
+  {
+    handlers.add(new Handler_Save());
+    handlers.add(new Handler_Get());
+    handlers.add(new Handler_Delete());
+    handlers.add(new Handler_Rename());
+  }
+
   public void handle(String[] args) {
-    final CMDHandlerProcessor processor = CMDHandlerProcessor.getInstance();
+    for (Handler handler : handlers) {
+      final Class<?> clazz = handler.getClass();
+      if (clazz.isAnnotationPresent(ArgsPattern.class)) {
+        final ArgsPattern ann = clazz.getAnnotation(ArgsPattern.class);
+        if (String.join(" ", args).matches(ann.value())) {
+          System.out.print("[>] enter secret: ");
+          final String secret = new String(System.console().readPassword());
+          if (secret.length() < 6) {
+            try {
+              TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
+            Logger.log(LogMsg.SECRET_IS_TOO_SHORT);
+            return;
+          }
 
-    processor.add(new Handler_Save());
-    processor.add(new Handler_Get());
-    processor.add(new Handler_Delete());
-    processor.add(new Handler_Rename());
-
-    try {
-      processor.process(args);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e); // TODO: replace exception with log
+          handler.handle(args, secret);
+          break;
+        }
+      } else {
+        Logger.log(LogMsg.HANDLER_HAS_NO_ANNOTATION, new String[]{
+          clazz.getName(),
+          ArgsPattern.class.getName()});
+      }
     }
   }
 }

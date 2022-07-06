@@ -1,4 +1,4 @@
-package just.curiosity.p2p_network.client.zer.cmd;
+package just.curiosity.p2p_network.client.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,6 +13,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface CMDPattern {
+public @interface ArgsPattern {
   String value();
 }
