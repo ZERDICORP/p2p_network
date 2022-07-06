@@ -19,4 +19,6 @@ public interface LogMsg {
   String FILE_DELETED_SUCCESSFULLY = "file deleted successfully!";
   String FILE_RENAMED_SUCCESSFULLY = "file renamed successfully!";
   String FILE_CREATED_SUCCESSFULLY = "file created successfully!";
+  String CANT_START_SERVER = "can't start server.. ?";
+  String WRONG_USAGE = "wrong usage.. check out usage guide!";
 }
