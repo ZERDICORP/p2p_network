@@ -58,23 +58,13 @@ public class Server {
     nodes.parallelStream()
       .forEach(nodeAddress -> {
         try (final Socket socket = new Socket(nodeAddress, port)) {
-          send(socket, packet);
+          packet.sendTo(socket);
         } catch (IOException e) {
           Logger.log(LogMsg.CANT_CONNECT_TO_PEER, new String[]{
             nodeAddress,
             e.getMessage()});
         }
       });
-  }
-
-  public void send(Socket socket, Packet packet) {
-    try {
-      socket.getOutputStream().write(packet.build());
-    } catch (IOException e) {
-      Logger.log(LogMsg.CANT_SEND_PACKET, new String[]{
-        socket.getInetAddress().toString(),
-        e.getMessage()});
-    }
   }
 
   private void handleSocket(Socket socket) throws IOException {
@@ -113,7 +103,9 @@ public class Server {
   public void cloneNodes(String rootNodeAddress) throws IOException {
     nodes.add(rootNodeAddress);
     try (final Socket socket = new Socket(rootNodeAddress, port)) {
-      send(socket, new Packet(PacketType.CLONE_NODES));
+      new Packet()
+        .withType(PacketType.CLONE_NODES)
+        .sendTo(socket);
 
       final Packet packet = Packet.read(socket.getInputStream());
       if (packet == null || packet.payloadSize() == 0) {

@@ -69,7 +69,10 @@ public class Handler_SaveData implements Handler {
           outputStream.write(shardName.getBytes());
           outputStream.write('\n');
           outputStream.write(encryptedShard);
-          server.sendToAll(new Packet(PacketType.SAVE_DATA, outputStream.toByteArray()));
+
+          server.sendToAll(new Packet()
+            .withType(PacketType.SAVE_DATA)
+            .withPayload(outputStream.toByteArray()));
         } catch (IOException e) {
           throw new RuntimeException(e); // TODO: replace exception with log
         }

@@ -21,10 +21,16 @@ public class Handler_CloneNodes implements Handler {
     final Set<String> nodes = server.nodes();
     nodes.remove(socketAddress);
 
-    server.send(socket, new Packet(PacketType.OK, String.join(",", nodes).getBytes()));
+    new Packet()
+      .withType(PacketType.OK)
+      .withPayload(String.join(",", nodes).getBytes())
+      .sendTo(socket);
+
     // Notifying the nodes that a new node has connected
     // and needs to be added to the list of nodes.
-    server.sendToAll(new Packet(PacketType.ADD_NODE, socketAddress.getBytes()));
+    server.sendToAll(new Packet()
+      .withType(PacketType.ADD_NODE)
+      .withPayload(socketAddress.getBytes()));
 
     nodes.add(socketAddress);
 

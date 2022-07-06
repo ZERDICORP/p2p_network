@@ -12,4 +12,7 @@ public interface LogMsg {
   String HANDLER_HAS_NO_ANNOTATION = "handler ? has no annotation ?.. ignore";
   String SERVER_STARTED = "server has been started on port ?..";
   String SECRET_IS_TOO_SHORT = "secret is too short.. min length = 6";
+  String CANT_SEND_PACKET_TO_LOCAL_NODE = "can't send packet to local node.. ?";
+  String FAILED_TO_SEND_PACKET = "failed to send packet.. ?";
+  String FILE_NOT_FOUND = "file not found..";
 }

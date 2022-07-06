@@ -3,7 +3,10 @@ package just.curiosity.p2p_network.server.packet;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Socket;
+import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.constants.PacketType;
+import just.curiosity.p2p_network.server.util.Logger;
 
 /**
  * @author zerdicorp
@@ -19,13 +22,18 @@ public class Packet {
   public Packet() {
   }
 
-  public Packet(PacketType type) {
+  public Packet withType(PacketType type) {
     this.type = type;
+    return this;
   }
 
-  public Packet(PacketType type, byte[] payload) {
-    this.type = type;
+  public Packet withPayload(byte[] payload) {
     this.payload = payload;
+    return this;
+  }
+
+  public Packet withPayload(String payload) {
+    return withPayload(payload.getBytes());
   }
 
   public PacketType type() {
@@ -36,12 +44,24 @@ public class Packet {
     return payload;
   }
 
+  public String payloadAsString() {
+    return new String(payload);
+  }
+
   public int payloadSize() {
     return payloadSize;
   }
 
   public void payload(byte[] payload) {
     this.payload = payload;
+  }
+
+  public void sendTo(Socket socket) {
+    try {
+      socket.getOutputStream().write(build());
+    } catch (IOException e) {
+      Logger.log(LogMsg.FAILED_TO_SEND_PACKET, e.getMessage());
+    }
   }
 
   public byte[] build() throws IOException {

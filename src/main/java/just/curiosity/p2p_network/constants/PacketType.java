@@ -13,5 +13,6 @@ public enum PacketType {
   SAVE_DATA,
   GET_DATA,
   DELETE_DATA,
-  RENAME_DATA
+  RENAME_DATA,
+  FILE_NOT_FOUND
 }

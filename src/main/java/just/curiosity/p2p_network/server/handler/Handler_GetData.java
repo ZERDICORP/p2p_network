@@ -43,7 +43,9 @@ public class Handler_GetData implements Handler {
           new File(Const.META_DIRECTORY + "/" + fileName), StandardCharsets.UTF_8);
         shards = sharedContent.split("\n");
       } catch (IOException e) {
-        System.out.println("Can't read signature \"" + fileName + "\".. " + e);
+        new Packet()
+          .withType(PacketType.FILE_NOT_FOUND)
+          .sendTo(socket);
         return;
       }
 
@@ -57,7 +59,10 @@ public class Handler_GetData implements Handler {
         String shard = null;
         for (String nodeAddress : nodes) {
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-            server.send(nodeSocket, new Packet(PacketType.GET_DATA, shardName.getBytes()));
+            new Packet()
+              .withType(PacketType.GET_DATA)
+              .withPayload(shardName.getBytes())
+              .sendTo(nodeSocket);
 
             final Packet getShardPacket = Packet.read(nodeSocket.getInputStream());
             if (getShardPacket == null) {
@@ -93,7 +98,10 @@ public class Handler_GetData implements Handler {
         originalFileContent.append(shard);
       }
 
-      server.send(socket, new Packet(PacketType.OK, originalFileContent.toString().getBytes()));
+      new Packet()
+        .withType(PacketType.OK)
+        .withPayload(originalFileContent.toString().getBytes())
+        .sendTo(socket);
       return;
     }
 
@@ -111,6 +119,9 @@ public class Handler_GetData implements Handler {
       return;
     }
 
-    server.send(socket, new Packet(PacketType.OK, shard));
+    new Packet()
+      .withType(PacketType.OK)
+      .withPayload(shard)
+      .sendTo(socket);
   }
 }

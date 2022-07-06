@@ -58,7 +58,10 @@ public class Handler_RenameData implements Handler {
 
         for (String nodeAddress : nodes) {
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-            server.send(nodeSocket, new Packet(PacketType.GET_DATA, shardName.getBytes()));
+            new Packet()
+              .withType(PacketType.GET_DATA)
+              .withPayload(shardName.getBytes())
+              .sendTo(nodeSocket);
 
             final Packet getShardPacket = Packet.read(nodeSocket.getInputStream());
             if (getShardPacket == null) {
@@ -79,8 +82,10 @@ public class Handler_RenameData implements Handler {
           }
 
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-            server.send(nodeSocket,
-              new Packet(PacketType.RENAME_DATA, (shardName + "\n" + newShardName).getBytes()));
+            new Packet()
+              .withType(PacketType.RENAME_DATA)
+              .withPayload(shardName + "\n" + newShardName)
+              .sendTo(nodeSocket);
           } catch (IOException e) {
             throw new RuntimeException(e); // TODO: replace exception with log
           }

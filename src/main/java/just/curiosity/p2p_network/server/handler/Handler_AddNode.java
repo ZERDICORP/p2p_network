@@ -20,7 +20,7 @@ public class Handler_AddNode implements Handler {
     // TODO: Before adding a node, send a test request
 
     final Set<String> nodes = server.nodes();
-    nodes.add(new String(packet.payload(), 0, packet.payloadSize()));
+    nodes.add(new String(packet.payload()));
 
     System.out.println("NODES AFTER ADDING NEW NODE: " + nodes); // TODO: remove debug log
   }

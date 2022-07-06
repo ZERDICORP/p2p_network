@@ -55,7 +55,10 @@ public class Handler_DeleteData implements Handler {
 
         for (String nodeAddress : nodes) {
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-            server.send(nodeSocket, new Packet(PacketType.GET_DATA, shardName.getBytes()));
+            new Packet()
+              .withType(PacketType.GET_DATA)
+              .withPayload(shardName.getBytes())
+              .sendTo(nodeSocket);
 
             final Packet getShardPacket = Packet.read(nodeSocket.getInputStream());
             if (getShardPacket == null) {
@@ -76,7 +79,10 @@ public class Handler_DeleteData implements Handler {
           }
 
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-            server.send(nodeSocket, new Packet(PacketType.DELETE_DATA, shardName.getBytes()));
+            new Packet()
+              .withType(PacketType.DELETE_DATA)
+              .withPayload(shardName.getBytes())
+              .sendTo(nodeSocket);
           } catch (IOException e) {
             throw new RuntimeException(e); // TODO: replace exception with log
           }
