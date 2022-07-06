@@ -1,11 +1,13 @@
 package just.curiosity.p2p_network.client.handler;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import just.curiosity.p2p_network.client.annotation.WithPattern;
 import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.packet.Packet;
 import just.curiosity.p2p_network.util.Logger;
+import org.apache.commons.io.FileUtils;
 
 /**
  * @author zerdicorp
@@ -13,7 +15,7 @@ import just.curiosity.p2p_network.util.Logger;
  * @created 6/30/22 - 12:25 PM
  */
 
-@WithPattern("cat [^\\s]+")
+@WithPattern("cat ([^\\s]+|[^\\s]+ -o [^\\s]+)")
 public class Handler_Get extends Handler {
   @Override
   public void handle(String[] args, String secret, Socket socket) throws IOException {
@@ -32,6 +34,11 @@ public class Handler_Get extends Handler {
       return;
     }
 
-    System.out.println(packet.payloadAsString());
+    if (args.length == 2) {
+      System.out.println(packet.payloadAsString());
+      return;
+    }
+
+    FileUtils.writeByteArrayToFile(new File(args[3]), packet.payload());
   }
 }
