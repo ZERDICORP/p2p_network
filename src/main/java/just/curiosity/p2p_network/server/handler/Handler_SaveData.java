@@ -10,7 +10,7 @@ import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithPacketType;
-import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.packet.Packet;
 import just.curiosity.p2p_network.util.AESCipher;
 import just.curiosity.p2p_network.util.ByteArraySplitter;
 import org.apache.commons.codec.digest.DigestUtils;

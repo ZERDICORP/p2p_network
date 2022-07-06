@@ -6,7 +6,7 @@ import just.curiosity.p2p_network.client.annotation.ArgsPattern;
 import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.constants.PacketType;
-import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.packet.Packet;
 import just.curiosity.p2p_network.util.Logger;
 
 /**

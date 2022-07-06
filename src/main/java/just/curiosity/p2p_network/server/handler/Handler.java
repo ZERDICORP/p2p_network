@@ -3,7 +3,7 @@ package just.curiosity.p2p_network.server.handler;
 import java.io.IOException;
 import java.net.Socket;
 import just.curiosity.p2p_network.server.Server;
-import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.packet.Packet;
 
 /**
  * @author zerdicorp
