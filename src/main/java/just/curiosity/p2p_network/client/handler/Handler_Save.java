@@ -14,7 +14,7 @@ import just.curiosity.p2p_network.util.Logger;
  * @created 6/29/22 - 12:34 PM
  */
 
-@WithPattern("upload .*")
+@WithPattern("upload [^\\s]+")
 public class Handler_Save extends Handler {
   @Override
   public void handle(String[] args, String secret, Socket socket) throws IOException {

@@ -13,7 +13,7 @@ import just.curiosity.p2p_network.util.Logger;
  * @created 6/30/22 - 12:25 PM
  */
 
-@WithPattern("cat .*")
+@WithPattern("cat [^\\s]+")
 public class Handler_Get extends Handler {
   @Override
   public void handle(String[] args, String secret, Socket socket) throws IOException {

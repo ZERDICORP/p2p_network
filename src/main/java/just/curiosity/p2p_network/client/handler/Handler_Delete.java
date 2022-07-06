@@ -14,7 +14,7 @@ import just.curiosity.p2p_network.util.Logger;
  * @created 7/4/22 - 9:19 AM
  */
 
-@WithPattern("rm .*")
+@WithPattern("rm [^\\s]+")
 public class Handler_Delete extends Handler {
   @Override
   public void handle(String[] args, String secret, Socket socket) throws IOException {
