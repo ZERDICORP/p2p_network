@@ -1,7 +1,6 @@
 package just.curiosity.p2p_network.server;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -9,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.annotation.WithPacketType;
 import just.curiosity.p2p_network.server.handler.Handler;
 import just.curiosity.p2p_network.server.handler.Handler_AddNode;
@@ -18,7 +18,6 @@ import just.curiosity.p2p_network.server.handler.Handler_GetData;
 import just.curiosity.p2p_network.server.handler.Handler_RenameData;
 import just.curiosity.p2p_network.server.handler.Handler_SaveData;
 import just.curiosity.p2p_network.server.packet.Packet;
-import just.curiosity.p2p_network.constants.PacketType;
 
 /**
  * @author zerdicorp
@@ -64,53 +63,10 @@ public class Server {
       });
   }
 
-  private int headerSize(byte[] buffer, int size) {
-    int count = 0;
-    for (int i = 0; i < size; ++i)
-      if (buffer[i] == '\n') {
-        count++;
-        if (count == 2) {
-          return i;
-        }
-      }
-    return buffer.length;
-  }
-
   private void handleSocket(Socket socket) throws IOException {
-    final InputStream inputStream = socket.getInputStream();
-
-    final byte[] firstSegmentBuffer = new byte[1024];
-    byte[] payloadBuffer;
-
-    final int firstSegmentSize = inputStream.read(firstSegmentBuffer);
-    if (firstSegmentSize == -1) {
+    final Packet packet = Packet.read(socket.getInputStream());
+    if (packet == null) {
       return;
-    }
-
-    final int headerSize = headerSize(firstSegmentBuffer, firstSegmentSize);
-
-    Packet packet = new Packet();
-    if (!packet.parse(new String(firstSegmentBuffer, 0, headerSize))) {
-      return;
-    }
-
-    if (packet.payloadSize() > 0) {
-      payloadBuffer = new byte[packet.payloadSize()];
-
-      int payloadBytesLengthInFirstSegment = firstSegmentSize - (headerSize + 1);
-      for (int i = 0; i < payloadBytesLengthInFirstSegment && i < payloadBuffer.length; ++i) {
-        payloadBuffer[i] = firstSegmentBuffer[i + (headerSize + 1)];
-      }
-
-      int offset = payloadBytesLengthInFirstSegment;
-      int segmentSize;
-
-      while (offset < payloadBuffer.length &&
-        (segmentSize = inputStream.read(payloadBuffer, offset, payloadBuffer.length - offset)) > 0) {
-        offset += segmentSize;
-      }
-
-      packet.payload(payloadBuffer);
     }
 
     for (Handler handler : handlers) {
