@@ -3,6 +3,7 @@ package just.curiosity.p2p_network.client.zer.cmd;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import just.curiosity.p2p_network.client.handler.Handler;
 import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.server.util.Logger;
 
@@ -13,7 +14,7 @@ import just.curiosity.p2p_network.server.util.Logger;
  */
 
 public class CMDHandlerProcessor {
-  private final List<CMDHandler> handlers = new ArrayList<>();
+  private final List<Handler> handlers = new ArrayList<>();
   private static CMDHandlerProcessor instance = null;
 
   public static CMDHandlerProcessor getInstance() {
@@ -22,12 +23,12 @@ public class CMDHandlerProcessor {
     return instance;
   }
 
-  public void add(CMDHandler h) {
+  public void add(Handler h) {
     handlers.add(h);
   }
 
   public void process(String[] args) throws InterruptedException {
-    for (CMDHandler handler : handlers) {
+    for (Handler handler : handlers) {
       final String value = String.join(" ", args);
       final Class<?> clazz = handler.getClass();
       if (clazz.isAnnotationPresent(CMDPattern.class)) {

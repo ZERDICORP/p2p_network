@@ -1,4 +1,4 @@
-package just.curiosity.p2p_network.client.zer.cmd;
+package just.curiosity.p2p_network.client.handler;
 
 /**
  * @author zerdicorp
@@ -6,6 +6,6 @@ package just.curiosity.p2p_network.client.zer.cmd;
  * @created 6/29/22 - 12:34 PM
  */
 
-public abstract class CMDHandler {
+public abstract class Handler {
   public abstract void handle(String[] args, String secret);
 }

@@ -2,7 +2,6 @@ package just.curiosity.p2p_network.client.handler;
 
 import java.io.IOException;
 import java.net.Socket;
-import just.curiosity.p2p_network.client.zer.cmd.CMDHandler;
 import just.curiosity.p2p_network.client.zer.cmd.CMDPattern;
 import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.constants.LogMsg;
@@ -17,7 +16,7 @@ import just.curiosity.p2p_network.server.util.Logger;
  */
 
 @CMDPattern("save .*")
-public class Handler_Save extends CMDHandler {
+public class Handler_Save extends Handler {
   @Override
   public void handle(String[] args, String secret) {
     try (final Socket socket = new Socket("127.0.0.1", Const.PORT)) {
