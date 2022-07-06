@@ -3,7 +3,7 @@ package just.curiosity.p2p_network.client;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import just.curiosity.p2p_network.client.annotation.ArgsPattern;
+import just.curiosity.p2p_network.client.annotation.WithPattern;
 import just.curiosity.p2p_network.client.handler.Handler;
 import just.curiosity.p2p_network.client.handler.Handler_Delete;
 import just.curiosity.p2p_network.client.handler.Handler_Get;
@@ -31,8 +31,8 @@ public class Client {
   public void handle(String[] args) {
     for (Handler handler : handlers) {
       final Class<?> clazz = handler.getClass();
-      if (clazz.isAnnotationPresent(ArgsPattern.class)) {
-        final ArgsPattern ann = clazz.getAnnotation(ArgsPattern.class);
+      if (clazz.isAnnotationPresent(WithPattern.class)) {
+        final WithPattern ann = clazz.getAnnotation(WithPattern.class);
         if (String.join(" ", args).matches(ann.value())) {
           System.out.print("[>] enter secret: ");
           final String secret = new String(System.console().readPassword());
@@ -52,7 +52,7 @@ public class Client {
       } else {
         Logger.log(LogMsg.HANDLER_HAS_NO_ANNOTATION, new String[]{
           clazz.getName(),
-          ArgsPattern.class.getName()});
+          WithPattern.class.getName()});
       }
     }
   }

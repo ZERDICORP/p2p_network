@@ -2,7 +2,7 @@ package just.curiosity.p2p_network.client.handler;
 
 import java.io.IOException;
 import java.net.Socket;
-import just.curiosity.p2p_network.client.annotation.ArgsPattern;
+import just.curiosity.p2p_network.client.annotation.WithPattern;
 import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.constants.PacketType;
@@ -15,7 +15,7 @@ import just.curiosity.p2p_network.util.Logger;
  * @created 7/4/22 - 9:52 AM
  */
 
-@ArgsPattern("rename .* .*")
+@WithPattern("rename .* .*")
 public class Handler_Rename extends Handler {
   @Override
   public void handle(String[] args, String secret) {
