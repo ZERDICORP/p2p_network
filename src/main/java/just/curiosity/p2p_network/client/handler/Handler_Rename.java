@@ -14,7 +14,7 @@ import just.curiosity.p2p_network.util.Logger;
  * @created 7/4/22 - 9:52 AM
  */
 
-@WithPattern("rename .* .*")
+@WithPattern("mv .* .*")
 public class Handler_Rename extends Handler {
   @Override
   public void handle(String[] args, String secret, Socket socket) throws IOException {
