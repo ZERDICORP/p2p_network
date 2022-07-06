@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.annotation.WithPacketType;
 import just.curiosity.p2p_network.server.handler.Handler;
@@ -18,6 +19,7 @@ import just.curiosity.p2p_network.server.handler.Handler_GetData;
 import just.curiosity.p2p_network.server.handler.Handler_RenameData;
 import just.curiosity.p2p_network.server.handler.Handler_SaveData;
 import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.server.util.Logger;
 
 /**
  * @author zerdicorp
@@ -26,7 +28,7 @@ import just.curiosity.p2p_network.server.packet.Packet;
  */
 
 public class Server {
-  private boolean isRunning = true;
+  private final boolean isRunning = true;
   private final int port;
   private final List<Handler> handlers = new ArrayList<>();
   private final Set<String> nodes = new HashSet<>();
@@ -55,12 +57,24 @@ public class Server {
   public void sendToAll(Packet packet) {
     nodes.parallelStream()
       .forEach(nodeAddress -> {
-        try (final Socket nodeSocket = new Socket(nodeAddress, port)) {
-          nodeSocket.getOutputStream().write(packet.build());
+        try (final Socket socket = new Socket(nodeAddress, port)) {
+          send(socket, packet);
         } catch (IOException e) {
-          System.out.println("Can't send message to address \"" + nodeAddress + "\".. " + e);
+          Logger.log(LogMsg.CANT_CONNECT_TO_PEER, new String[]{
+            nodeAddress,
+            e.getMessage()});
         }
       });
+  }
+
+  public void send(Socket socket, Packet packet) {
+    try {
+      socket.getOutputStream().write(packet.build());
+    } catch (IOException e) {
+      Logger.log(LogMsg.CANT_SEND_PACKET, new String[]{
+        socket.getInetAddress().toString(),
+        e.getMessage()});
+    }
   }
 
   private void handleSocket(Socket socket) throws IOException {
@@ -78,17 +92,21 @@ public class Server {
           break;
         }
       } else {
-        System.out.println("Handler \"" + clazz.getName() + "\" have no \"" +
-          WithPacketType.class.getName() + "\" annotation.. ignore");
+        Logger.log(LogMsg.HANDLER_HAS_NO_ANNOTATION, new String[]{
+          clazz.getName(),
+          WithPacketType.class.getName()});
       }
     }
   }
 
-  public void send(Socket socket, Packet packet) {
-    try {
-      socket.getOutputStream().write(packet.build());
-    } catch (IOException e) {
-      System.out.println("Can't send packet to " + socket.getInetAddress() + ".. " + e);
+  public void start() throws IOException {
+    try (final ServerSocket serverSocket = new ServerSocket(port)) {
+      Logger.log(LogMsg.SERVER_STARTED, String.valueOf(port));
+      while (isRunning) {
+        try (final Socket socket = serverSocket.accept()) {
+          handleSocket(socket);
+        }
+      }
     }
   }
 
@@ -107,16 +125,5 @@ public class Server {
         .split(",")));
     }
     System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
-  }
-
-  public void start() throws IOException {
-    try (final ServerSocket serverSocket = new ServerSocket(port)) {
-      System.out.println("Server has been started on port " + port + "..");
-      while (isRunning) {
-        try (final Socket socket = serverSocket.accept()) {
-          handleSocket(socket);
-        }
-      }
-    }
   }
 }

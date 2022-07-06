@@ -21,6 +21,10 @@ public class Client {
     processor.add(new Handler_Delete());
     processor.add(new Handler_Rename());
 
-    processor.process(args);
+    try {
+      processor.process(args);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e); // TODO: replace exception with log
+    }
   }
 }
