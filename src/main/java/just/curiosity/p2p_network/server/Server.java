@@ -127,13 +127,11 @@ public class Server {
 
       final Packet packet = Packet.read(socket.getInputStream());
       if (packet == null || packet.payloadSize() == 0) {
-        System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
         return;
       }
 
       nodes.addAll(Arrays.asList(new String(packet.payload(), 0, packet.payloadSize())
         .split(",")));
     }
-    System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
   }
 }
