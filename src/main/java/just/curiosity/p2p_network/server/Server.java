@@ -1,7 +1,6 @@
 package just.curiosity.p2p_network.server;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -9,6 +8,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import just.curiosity.p2p_network.constants.LogMsg;
+import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.annotation.WithPacketType;
 import just.curiosity.p2p_network.server.handler.Handler;
 import just.curiosity.p2p_network.server.handler.Handler_AddNode;
@@ -18,7 +19,7 @@ import just.curiosity.p2p_network.server.handler.Handler_GetData;
 import just.curiosity.p2p_network.server.handler.Handler_RenameData;
 import just.curiosity.p2p_network.server.handler.Handler_SaveData;
 import just.curiosity.p2p_network.server.packet.Packet;
-import just.curiosity.p2p_network.constants.PacketType;
+import just.curiosity.p2p_network.server.util.Logger;
 
 /**
  * @author zerdicorp
@@ -27,7 +28,7 @@ import just.curiosity.p2p_network.constants.PacketType;
  */
 
 public class Server {
-  private boolean isRunning = true;
+  private final boolean isRunning = true;
   private final int port;
   private final List<Handler> handlers = new ArrayList<>();
   private final Set<String> nodes = new HashSet<>();
@@ -56,61 +57,20 @@ public class Server {
   public void sendToAll(Packet packet) {
     nodes.parallelStream()
       .forEach(nodeAddress -> {
-        try (final Socket nodeSocket = new Socket(nodeAddress, port)) {
-          nodeSocket.getOutputStream().write(packet.build());
+        try (final Socket socket = new Socket(nodeAddress, port)) {
+          packet.sendTo(socket);
         } catch (IOException e) {
-          System.out.println("Can't send message to address \"" + nodeAddress + "\".. " + e);
+          Logger.log(LogMsg.CANT_CONNECT_TO_PEER, new String[]{
+            nodeAddress,
+            e.getMessage()});
         }
       });
   }
 
-  private int headerSize(byte[] buffer, int size) {
-    int count = 0;
-    for (int i = 0; i < size; ++i)
-      if (buffer[i] == '\n') {
-        count++;
-        if (count == 2) {
-          return i;
-        }
-      }
-    return buffer.length;
-  }
-
   private void handleSocket(Socket socket) throws IOException {
-    final InputStream inputStream = socket.getInputStream();
-
-    final byte[] firstSegmentBuffer = new byte[1024];
-    byte[] payloadBuffer;
-
-    final int firstSegmentSize = inputStream.read(firstSegmentBuffer);
-    if (firstSegmentSize == -1) {
+    final Packet packet = Packet.read(socket.getInputStream());
+    if (packet == null) {
       return;
-    }
-
-    final int headerSize = headerSize(firstSegmentBuffer, firstSegmentSize);
-
-    Packet packet = new Packet();
-    if (!packet.parse(new String(firstSegmentBuffer, 0, headerSize))) {
-      return;
-    }
-
-    if (packet.payloadSize() > 0) {
-      payloadBuffer = new byte[packet.payloadSize()];
-
-      int payloadBytesLengthInFirstSegment = firstSegmentSize - (headerSize + 1);
-      for (int i = 0; i < payloadBytesLengthInFirstSegment && i < payloadBuffer.length; ++i) {
-        payloadBuffer[i] = firstSegmentBuffer[i + (headerSize + 1)];
-      }
-
-      int offset = payloadBytesLengthInFirstSegment;
-      int segmentSize;
-
-      while (offset < payloadBuffer.length &&
-        (segmentSize = inputStream.read(payloadBuffer, offset, payloadBuffer.length - offset)) > 0) {
-        offset += segmentSize;
-      }
-
-      packet.payload(payloadBuffer);
     }
 
     for (Handler handler : handlers) {
@@ -122,8 +82,22 @@ public class Server {
           break;
         }
       } else {
-        System.out.println("Handler \"" + clazz.getName() + "\" have no \"" +
-          WithPacketType.class.getName() + "\" annotation.. ignore");
+        Logger.log(LogMsg.HANDLER_HAS_NO_ANNOTATION, new String[]{
+          clazz.getName(),
+          WithPacketType.class.getName()});
+      }
+    }
+  }
+
+  public void start() throws IOException {
+    try (final ServerSocket serverSocket = new ServerSocket(port)) {
+      Logger.log(LogMsg.SERVER_STARTED, String.valueOf(port));
+      while (isRunning) {
+        try (final Socket socket = serverSocket.accept()) {
+          handleSocket(socket);
+        } catch (IOException e) {
+          Logger.log(LogMsg.SOCKET_HANDLING_ERROR, e.getMessage());
+        }
       }
     }
   }
@@ -131,28 +105,19 @@ public class Server {
   public void cloneNodes(String rootNodeAddress) throws IOException {
     nodes.add(rootNodeAddress);
     try (final Socket socket = new Socket(rootNodeAddress, port)) {
-      socket.getOutputStream().write(new Packet(PacketType.CLONE_NODES).build());
+      new Packet()
+        .withType(PacketType.CLONE_NODES)
+        .sendTo(socket);
 
-      final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
-      final int size = socket.getInputStream().read(buffer);
-      if (size == -1) {
+      final Packet packet = Packet.read(socket.getInputStream());
+      if (packet == null || packet.payloadSize() == 0) {
         System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
         return;
       }
 
-      nodes.addAll(Arrays.asList(new String(buffer, 0, size).split(",")));
+      nodes.addAll(Arrays.asList(new String(packet.payload(), 0, packet.payloadSize())
+        .split(",")));
     }
     System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
-  }
-
-  public void start() throws IOException {
-    try (final ServerSocket serverSocket = new ServerSocket(port)) {
-      System.out.println("Server has been started on port " + port + "..");
-      while (isRunning) {
-        try (final Socket socket = serverSocket.accept()) {
-          handleSocket(socket);
-        }
-      }
-    }
   }
 }

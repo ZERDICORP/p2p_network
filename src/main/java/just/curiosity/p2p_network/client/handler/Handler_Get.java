@@ -1,13 +1,14 @@
 package just.curiosity.p2p_network.client.handler;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Socket;
 import just.curiosity.p2p_network.client.zer.cmd.CMDHandler;
 import just.curiosity.p2p_network.client.zer.cmd.CMDPattern;
 import just.curiosity.p2p_network.constants.Const;
-import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.constants.PacketType;
+import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.server.util.Logger;
 
 /**
  * @author zerdicorp
@@ -19,22 +20,25 @@ import just.curiosity.p2p_network.constants.PacketType;
 public class Handler_Get extends CMDHandler {
   @Override
   public void handle(String[] args, String secret) {
-    final String payload = secret + "\n" + args[1];
-    try (final Socket nodeSocket = new Socket("127.0.0.1", Const.PORT)) {
-      final OutputStream outputStream = nodeSocket.getOutputStream();
-      outputStream.write(new Packet(PacketType.GET_DATA, payload.getBytes()).build());
+    try (final Socket socket = new Socket("127.0.0.1", Const.PORT)) {
+      new Packet()
+        .withType(PacketType.GET_DATA)
+        .withPayload(secret + "\n" + args[1])
+        .sendTo(socket);
 
-      final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
-      final int size = nodeSocket.getInputStream().read(buffer);
-      if (size == -1) {
-        System.out.println("File \"" + args[1] + "\" not found..");
+      final Packet packet = Packet.read(socket.getInputStream());
+      if (packet == null) {
         return;
       }
 
-      System.out.println("File \"" + args[1] + "\" was found: " +
-        new String(buffer, 0, size));
+      if (!packet.type().equals(PacketType.OK)) {
+        Logger.byPacketType(packet.type());
+        return;
+      }
+
+      System.out.println(packet.payloadAsString());
     } catch (IOException e) {
-      System.out.println("Can't send message to local node.. " + e);
+      Logger.log(LogMsg.CANT_SEND_PACKET_TO_LOCAL_NODE, e.getMessage());
     }
   }
 }

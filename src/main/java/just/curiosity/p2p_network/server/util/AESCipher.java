@@ -23,7 +23,7 @@ public final class AESCipher {
     try {
       sha = MessageDigest.getInstance("SHA-1");
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(e); // TODO: replace exception with log
     }
 
     key = sha.digest(key);
@@ -39,7 +39,7 @@ public final class AESCipher {
       cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
       return cipher.doFinal(data);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(e); // TODO: replace exception with log
     }
   }
 

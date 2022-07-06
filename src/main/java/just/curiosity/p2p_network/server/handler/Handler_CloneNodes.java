@@ -1,13 +1,11 @@
 package just.curiosity.p2p_network.server.handler;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Set;
+import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithPacketType;
 import just.curiosity.p2p_network.server.packet.Packet;
-import just.curiosity.p2p_network.constants.PacketType;
 
 /**
  * @author zerdicorp
@@ -22,19 +20,20 @@ public class Handler_CloneNodes implements Handler {
 
     final Set<String> nodes = server.nodes();
     nodes.remove(socketAddress);
-    try {
-      final OutputStream outputStream = socket.getOutputStream();
-      outputStream.write(String.join(",", nodes).getBytes());
-    } catch (IOException e) {
-      System.out.println("Can't write to socket output stream..");
-    }
 
-    System.out.println("CLONE ACCEPTED: " + socketAddress); // TODO: remove debug log
+    new Packet()
+      .withType(PacketType.OK)
+      .withPayload(String.join(",", nodes).getBytes())
+      .sendTo(socket);
 
     // Notifying the nodes that a new node has connected
     // and needs to be added to the list of nodes.
-    server.sendToAll(new Packet(PacketType.ADD_NODE, socketAddress.getBytes()));
+    server.sendToAll(new Packet()
+      .withType(PacketType.ADD_NODE)
+      .withPayload(socketAddress.getBytes()));
 
     nodes.add(socketAddress);
+
+    System.out.println("CLONE ACCEPTED: " + socketAddress); // TODO: remove debug log
   }
 }

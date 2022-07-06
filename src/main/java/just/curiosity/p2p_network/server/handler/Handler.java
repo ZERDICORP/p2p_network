@@ -1,5 +1,6 @@
 package just.curiosity.p2p_network.server.handler;
 
+import java.io.IOException;
 import java.net.Socket;
 import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.packet.Packet;
@@ -11,5 +12,5 @@ import just.curiosity.p2p_network.server.packet.Packet;
  */
 
 public interface Handler {
-  void handle(Server server, Socket socket, Packet packet);
+  void handle(Server server, Socket socket, Packet packet) throws IOException;
 }

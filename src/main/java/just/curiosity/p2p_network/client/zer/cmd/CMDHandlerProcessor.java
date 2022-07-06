@@ -2,6 +2,9 @@ package just.curiosity.p2p_network.client.zer.cmd;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import just.curiosity.p2p_network.constants.LogMsg;
+import just.curiosity.p2p_network.server.util.Logger;
 
 /**
  * @author zerdicorp
@@ -23,7 +26,7 @@ public class CMDHandlerProcessor {
     handlers.add(h);
   }
 
-  public void process(String[] args) {
+  public void process(String[] args) throws InterruptedException {
     for (CMDHandler handler : handlers) {
       final String value = String.join(" ", args);
       final Class<?> clazz = handler.getClass();
@@ -33,12 +36,8 @@ public class CMDHandlerProcessor {
           System.out.print("[>] enter secret: ");
           final String secret = new String(System.console().readPassword());
           if (secret.length() < 6) {
-            try {
-              Thread.sleep(1000);
-            } catch (InterruptedException e) {
-              throw new RuntimeException(e);
-            }
-            System.out.println("[warn]: secret is too short.. min length = 6");
+            TimeUnit.SECONDS.sleep(1);
+            Logger.log(LogMsg.SECRET_IS_TOO_SHORT);
             return;
           }
 
@@ -46,8 +45,9 @@ public class CMDHandlerProcessor {
           break;
         }
       } else {
-        System.out.println("[warn]: handler \"" + clazz.getName() + "\" has no annotation \"" +
-          CMDPattern.class.getName() + "\".. skipped");
+        Logger.log(LogMsg.HANDLER_HAS_NO_ANNOTATION, new String[]{
+          clazz.getName(),
+          CMDPattern.class.getName()});
       }
     }
   }
