@@ -8,10 +8,10 @@ import java.net.Socket;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import just.curiosity.p2p_network.constants.Const;
+import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithPacketType;
 import just.curiosity.p2p_network.server.packet.Packet;
-import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.util.AESCipher;
 import just.curiosity.p2p_network.server.util.ByteArraySplitter;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -71,7 +71,7 @@ public class Handler_SaveData implements Handler {
           outputStream.write(encryptedShard);
           server.sendToAll(new Packet(PacketType.SAVE_DATA, outputStream.toByteArray()));
         } catch (IOException e) {
-          throw new RuntimeException(e);
+          throw new RuntimeException(e); // TODO: replace exception with log
         }
 
         // We save information about the correct sequence of
@@ -84,7 +84,7 @@ public class Handler_SaveData implements Handler {
       try (final FileOutputStream out = new FileOutputStream(Const.META_DIRECTORY + "/" + fileNameHash)) {
         out.write(String.join("\n", shardsInfo).getBytes());
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException(e); // TODO: replace exception with log
       }
       return;
     }
@@ -99,11 +99,10 @@ public class Handler_SaveData implements Handler {
     }
 
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
-
     try {
       FileUtils.writeByteArrayToFile(new File(Const.SHARDS_DIRECTORY + "/" + shardName), payload.get(1));
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(e); // TODO: replace exception with log
     }
 
     System.out.println("SAVED SHARD: " + shardName); // TODO: remove debug log

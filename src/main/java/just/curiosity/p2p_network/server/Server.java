@@ -84,19 +84,27 @@ public class Server {
     }
   }
 
+  public void send(Socket socket, Packet packet) {
+    try {
+      socket.getOutputStream().write(packet.build());
+    } catch (IOException e) {
+      System.out.println("Can't send packet to " + socket.getInetAddress() + ".. " + e);
+    }
+  }
+
   public void cloneNodes(String rootNodeAddress) throws IOException {
     nodes.add(rootNodeAddress);
     try (final Socket socket = new Socket(rootNodeAddress, port)) {
-      socket.getOutputStream().write(new Packet(PacketType.CLONE_NODES).build());
+      send(socket, new Packet(PacketType.CLONE_NODES));
 
-      final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
-      final int size = socket.getInputStream().read(buffer);
-      if (size == -1) {
+      final Packet packet = Packet.read(socket.getInputStream());
+      if (packet == null || packet.payloadSize() == 0) {
         System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
         return;
       }
 
-      nodes.addAll(Arrays.asList(new String(buffer, 0, size).split(",")));
+      nodes.addAll(Arrays.asList(new String(packet.payload(), 0, packet.payloadSize())
+        .split(",")));
     }
     System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
   }

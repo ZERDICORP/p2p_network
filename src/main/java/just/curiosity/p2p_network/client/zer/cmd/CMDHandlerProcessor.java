@@ -36,7 +36,7 @@ public class CMDHandlerProcessor {
             try {
               Thread.sleep(1000);
             } catch (InterruptedException e) {
-              throw new RuntimeException(e);
+              throw new RuntimeException(e); // TODO: replace exception with log
             }
             System.out.println("[warn]: secret is too short.. min length = 6");
             return;

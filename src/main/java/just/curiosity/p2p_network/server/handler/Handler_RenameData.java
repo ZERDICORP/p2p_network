@@ -4,13 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Set;
 import just.curiosity.p2p_network.constants.Const;
+import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.Server;
 import just.curiosity.p2p_network.server.annotation.WithPacketType;
 import just.curiosity.p2p_network.server.packet.Packet;
-import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.util.AESCipher;
 import just.curiosity.p2p_network.server.util.ByteArraySplitter;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -59,16 +58,14 @@ public class Handler_RenameData implements Handler {
 
         for (String nodeAddress : nodes) {
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-            nodeSocket.getOutputStream()
-              .write(new Packet(PacketType.GET_DATA, shardName.getBytes()).build());
+            server.send(nodeSocket, new Packet(PacketType.GET_DATA, shardName.getBytes()));
 
-            final byte[] buffer = new byte[1024]; // TODO: replace fixed buffer size
-            final int size = nodeSocket.getInputStream().read(buffer);
-            if (size == -1) {
+            final Packet getShardPacket = Packet.read(nodeSocket.getInputStream());
+            if (getShardPacket == null) {
               continue;
             }
 
-            final byte[] foundShard = Arrays.copyOfRange(buffer, 0, size);
+            final byte[] foundShard = getShardPacket.payload();
             if (!shardInfoArr[1].equals(DigestUtils.sha256Hex(foundShard))) {
               continue;
             }
@@ -78,14 +75,14 @@ public class Handler_RenameData implements Handler {
               return;
             }
           } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e); // TODO: replace exception with log
           }
 
           try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-            nodeSocket.getOutputStream()
-              .write(new Packet(PacketType.RENAME_DATA, (shardName + "\n" + newShardName).getBytes()).build());
+            server.send(nodeSocket,
+              new Packet(PacketType.RENAME_DATA, (shardName + "\n" + newShardName).getBytes()));
           } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e); // TODO: replace exception with log
           }
         }
       }
