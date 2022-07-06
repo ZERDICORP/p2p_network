@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import just.curiosity.p2p_network.constants.Const;
@@ -73,8 +74,16 @@ public class Handler_SaveFile implements Handler {
 
     final String[] metaData = new String[shards.length];
     for (int i = 0; i < shards.length; i++) {
+      byte[] shard = shards[i];
+      if (indices[i] == shards.length - 1) {
+        final int offset = sourceData.length % Const.SHARD_SIZE;
+        if (offset > 0) {
+          shard = Arrays.copyOfRange(shards[i], 0, offset);
+        }
+      }
+
       final String shardName = DigestUtils.sha256Hex(metaFileName + i);
-      final byte[] encryptedShard = AESCipher.encrypt(shards[i], payload.get(0));
+      final byte[] encryptedShard = AESCipher.encrypt(shard, payload.get(0));
 
       // Sending a shard to all nodes.
       try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {

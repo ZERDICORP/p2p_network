@@ -1,5 +1,6 @@
 package just.curiosity.p2p_network.server.handler;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
@@ -43,12 +44,12 @@ public class Handler_GetFile implements Handler {
       return;
     }
 
-    final StringBuilder result = new StringBuilder();
+    final ByteArrayOutputStream result = new ByteArrayOutputStream();
     for (String metaInfo : metaData) {
       final String[] shardInfo = metaInfo.split(",");
       final String shardName = DigestUtils.sha256Hex(metaFileName + shardInfo[0]);
 
-      String shard = null;
+      byte[] shard = null;
       for (String nodeAddress : server.nodes()) {
         final Packet getShardPacket = getShard(nodeAddress, server.port(), shardName, shardInfo[1], payload.get(0));
         if (getShardPacket == null) {
@@ -60,7 +61,7 @@ public class Handler_GetFile implements Handler {
           return;
         }
 
-        shard = getShardPacket.payloadAsString();
+        shard = getShardPacket.payload();
         break;
       }
 
@@ -71,12 +72,12 @@ public class Handler_GetFile implements Handler {
         return;
       }
 
-      result.append(shard);
+      result.write(shard);
     }
 
     new Packet()
       .withType(PacketType.OK)
-      .withPayload(result.toString().getBytes())
+      .withPayload(result.toByteArray())
       .sendTo(socket);
   }
 
