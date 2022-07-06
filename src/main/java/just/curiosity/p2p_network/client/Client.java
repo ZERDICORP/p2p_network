@@ -1,5 +1,7 @@
 package just.curiosity.p2p_network.client;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -9,6 +11,7 @@ import just.curiosity.p2p_network.client.handler.Handler_Delete;
 import just.curiosity.p2p_network.client.handler.Handler_Get;
 import just.curiosity.p2p_network.client.handler.Handler_Rename;
 import just.curiosity.p2p_network.client.handler.Handler_Save;
+import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.util.Logger;
 
@@ -46,13 +49,16 @@ public class Client {
             return;
           }
 
-          handler.handle(args, secret);
-          break;
+          try (final Socket socket = new Socket("127.0.0.1", Const.PORT)) {
+            handler.handle(args, secret, socket);
+          } catch (IOException e) {
+            Logger.log(LogMsg.ERROR_SENDING_PACKET_TO_LOCAL_NODE, e.getMessage());
+          }
+        } else {
+          Logger.log(LogMsg.HANDLER_HAS_NO_ANNOTATION, new String[]{
+            clazz.getName(),
+            WithPattern.class.getName()});
         }
-      } else {
-        Logger.log(LogMsg.HANDLER_HAS_NO_ANNOTATION, new String[]{
-          clazz.getName(),
-          WithPattern.class.getName()});
       }
     }
   }
