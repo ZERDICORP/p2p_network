@@ -1,4 +1,4 @@
-package just.curiosity.p2p_network.server.util;
+package just.curiosity.p2p_network.util;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

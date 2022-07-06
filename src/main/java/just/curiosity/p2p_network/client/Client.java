@@ -10,7 +10,7 @@ import just.curiosity.p2p_network.client.handler.Handler_Get;
 import just.curiosity.p2p_network.client.handler.Handler_Rename;
 import just.curiosity.p2p_network.client.handler.Handler_Save;
 import just.curiosity.p2p_network.constants.LogMsg;
-import just.curiosity.p2p_network.server.util.Logger;
+import just.curiosity.p2p_network.util.Logger;
 
 /**
  * @author zerdicorp
