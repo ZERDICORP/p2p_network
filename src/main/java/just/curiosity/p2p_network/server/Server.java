@@ -33,7 +33,6 @@ import just.curiosity.p2p_network.util.Logger;
  */
 
 public class Server {
-  private final boolean isRunning = true;
   private final int port;
   private final List<Handler> handlers = new ArrayList<>();
   private final Set<String> nodes = new HashSet<>();
@@ -108,7 +107,7 @@ public class Server {
   public void start() throws IOException {
     try (final ServerSocket serverSocket = new ServerSocket(port)) {
       Logger.log(LogMsg.SERVER_STARTED, String.valueOf(port));
-      while (isRunning) {
+      while (true) {
         try (final Socket socket = serverSocket.accept()) {
           handleSocket(socket);
         } catch (IOException e) {
