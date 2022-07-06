@@ -10,16 +10,21 @@ import java.util.List;
 import java.util.Set;
 import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.constants.PacketType;
+import just.curiosity.p2p_network.packet.Packet;
 import just.curiosity.p2p_network.server.annotation.WithPacketType;
+import just.curiosity.p2p_network.server.annotation.WithSocketAddress;
 import just.curiosity.p2p_network.server.handler.Handler;
 import just.curiosity.p2p_network.server.handler.Handler_AddNode;
 import just.curiosity.p2p_network.server.handler.Handler_CloneNodes;
-import just.curiosity.p2p_network.server.handler.Handler_DeleteData;
-import just.curiosity.p2p_network.server.handler.Handler_GetData;
-import just.curiosity.p2p_network.server.handler.Handler_RenameData;
-import just.curiosity.p2p_network.server.handler.Handler_SaveData;
-import just.curiosity.p2p_network.server.packet.Packet;
-import just.curiosity.p2p_network.server.util.Logger;
+import just.curiosity.p2p_network.server.handler.Handler_DeleteFile;
+import just.curiosity.p2p_network.server.handler.Handler_DeleteShard;
+import just.curiosity.p2p_network.server.handler.Handler_GetFile;
+import just.curiosity.p2p_network.server.handler.Handler_GetShard;
+import just.curiosity.p2p_network.server.handler.Handler_RenameFile;
+import just.curiosity.p2p_network.server.handler.Handler_RenameShard;
+import just.curiosity.p2p_network.server.handler.Handler_SaveFile;
+import just.curiosity.p2p_network.server.handler.Handler_SaveShard;
+import just.curiosity.p2p_network.util.Logger;
 
 /**
  * @author zerdicorp
@@ -28,7 +33,6 @@ import just.curiosity.p2p_network.server.util.Logger;
  */
 
 public class Server {
-  private final boolean isRunning = true;
   private final int port;
   private final List<Handler> handlers = new ArrayList<>();
   private final Set<String> nodes = new HashSet<>();
@@ -36,10 +40,14 @@ public class Server {
   {
     handlers.add(new Handler_CloneNodes());
     handlers.add(new Handler_AddNode());
-    handlers.add(new Handler_SaveData());
-    handlers.add(new Handler_GetData());
-    handlers.add(new Handler_DeleteData());
-    handlers.add(new Handler_RenameData());
+    handlers.add(new Handler_SaveShard());
+    handlers.add(new Handler_SaveFile());
+    handlers.add(new Handler_GetShard());
+    handlers.add(new Handler_GetFile());
+    handlers.add(new Handler_DeleteShard());
+    handlers.add(new Handler_DeleteFile());
+    handlers.add(new Handler_RenameShard());
+    handlers.add(new Handler_RenameFile());
   }
 
   public Server(int port) {
@@ -73,12 +81,19 @@ public class Server {
       return;
     }
 
+    final String socketAddress = socket.getInetAddress().toString().split("/")[1];
     for (Handler handler : handlers) {
       final Class<?> clazz = handler.getClass();
       if (clazz.isAnnotationPresent(WithPacketType.class)) {
-        final WithPacketType ann = clazz.getAnnotation(WithPacketType.class);
-        if (ann.value().equals(packet.type())) {
-          handler.handle(this, socket, packet);
+        final WithPacketType withPacketTypeAnn = clazz.getAnnotation(WithPacketType.class);
+        if (withPacketTypeAnn.value().equals(packet.type())) {
+          if (clazz.isAnnotationPresent(WithSocketAddress.class)) {
+            final WithSocketAddress withSocketAddressAnn = clazz.getAnnotation(WithSocketAddress.class);
+            if (!withSocketAddressAnn.value().equals(socketAddress)) {
+              continue;
+            }
+          }
+          handler.handle(this, socket, socketAddress, packet);
           break;
         }
       } else {
@@ -92,7 +107,7 @@ public class Server {
   public void start() throws IOException {
     try (final ServerSocket serverSocket = new ServerSocket(port)) {
       Logger.log(LogMsg.SERVER_STARTED, String.valueOf(port));
-      while (isRunning) {
+      while (true) {
         try (final Socket socket = serverSocket.accept()) {
           handleSocket(socket);
         } catch (IOException e) {
@@ -111,13 +126,11 @@ public class Server {
 
       final Packet packet = Packet.read(socket.getInputStream());
       if (packet == null || packet.payloadSize() == 0) {
-        System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
         return;
       }
 
       nodes.addAll(Arrays.asList(new String(packet.payload(), 0, packet.payloadSize())
         .split(",")));
     }
-    System.out.println("CLONED NODES: " + nodes); // TODO: remove debug log
   }
 }

@@ -11,7 +11,7 @@ public interface LogMsg {
   String HANDLER_HAS_NO_ANNOTATION = "handler ? has no annotation ?.. ignore";
   String SERVER_STARTED = "server has been started on port ?..";
   String SECRET_IS_TOO_SHORT = "secret is too short.. min length = 6";
-  String CANT_SEND_PACKET_TO_LOCAL_NODE = "can't send packet to local node.. ?";
+  String ERROR_SENDING_PACKET_TO_LOCAL_NODE = "error sending packet to local node.. ?";
   String FAILED_TO_SEND_PACKET = "failed to send packet.. ?";
   String FILE_NOT_FOUND = "file not found..";
   String SOCKET_HANDLING_ERROR = "socket handling error.. ?";
@@ -19,4 +19,6 @@ public interface LogMsg {
   String FILE_DELETED_SUCCESSFULLY = "file deleted successfully!";
   String FILE_RENAMED_SUCCESSFULLY = "file renamed successfully!";
   String FILE_CREATED_SUCCESSFULLY = "file created successfully!";
+  String CANT_START_SERVER = "can't start server.. ?";
+  String WRONG_USAGE = "wrong usage.. check out usage guide!";
 }

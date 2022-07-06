@@ -1,4 +1,4 @@
-package just.curiosity.p2p_network.server.util;
+package just.curiosity.p2p_network.util;
 
 import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.constants.PacketType;

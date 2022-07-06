@@ -6,7 +6,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import just.curiosity.p2p_network.client.Client;
 import just.curiosity.p2p_network.constants.Const;
+import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.server.Server;
+import just.curiosity.p2p_network.util.Logger;
 
 /**
  * @author zerdicorp
@@ -20,13 +22,13 @@ public class Main {
       Files.createDirectories(Paths.get(Const.SHARDS_DIRECTORY));
       Files.createDirectories(Paths.get(Const.META_DIRECTORY));
     } catch (IOException e) {
-      throw new RuntimeException(e); // TODO: replace exception with log
+      throw new RuntimeException(e);
     }
   }
 
   private static void startClient(String[] args) {
     if (args.length < 1) {
-      System.out.println("Wrong usage.. Check out usage guide!");
+      Logger.log(LogMsg.WRONG_USAGE);
       return;
     }
 
@@ -42,13 +44,13 @@ public class Main {
       }
       server.start();
     } catch (IOException e) {
-      System.out.println("Can't start server.. " + e.getMessage());
+      Logger.log(LogMsg.CANT_START_SERVER, e.getMessage());
     }
   }
 
   public static void main(String[] args) {
     if (args.length == 0) {
-      System.out.println("Not enough parameters.. Check out the little usage guide in README.md");
+      Logger.log(LogMsg.WRONG_USAGE);
       return;
     }
 

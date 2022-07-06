@@ -1,4 +1,4 @@
-package just.curiosity.p2p_network.server.packet;
+package just.curiosity.p2p_network.packet;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.constants.PacketType;
-import just.curiosity.p2p_network.server.util.Logger;
+import just.curiosity.p2p_network.util.Logger;
 
 /**
  * @author zerdicorp
