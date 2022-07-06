@@ -22,7 +22,7 @@ public class Main {
       Files.createDirectories(Paths.get(Const.SHARDS_DIRECTORY));
       Files.createDirectories(Paths.get(Const.META_DIRECTORY));
     } catch (IOException e) {
-      throw new RuntimeException(e); // TODO: replace exception with log
+      throw new RuntimeException(e);
     }
   }
 
