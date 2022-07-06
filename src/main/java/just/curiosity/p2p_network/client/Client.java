@@ -54,11 +54,11 @@ public class Client {
           } catch (IOException e) {
             Logger.log(LogMsg.ERROR_SENDING_PACKET_TO_LOCAL_NODE, e.getMessage());
           }
-        } else {
-          Logger.log(LogMsg.HANDLER_HAS_NO_ANNOTATION, new String[]{
-            clazz.getName(),
-            WithPattern.class.getName()});
         }
+      } else {
+        Logger.log(LogMsg.HANDLER_HAS_NO_ANNOTATION, new String[]{
+          clazz.getName(),
+          WithPattern.class.getName()});
       }
     }
   }
