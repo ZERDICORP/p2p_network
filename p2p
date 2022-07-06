@@ -1,0 +1,1 @@
+java -jar target/p2p_network-1.0-SNAPSHOT-jar-with-dependencies.jar $@
