@@ -19,7 +19,7 @@ public class Handler_Delete extends Handler {
   @Override
   public void handle(String[] args, String secret, Socket socket) throws IOException {
     new Packet()
-      .withType(PacketType.DELETE_DATA)
+      .withType(PacketType.DELETE_FILE)
       .withPayload(secret + "\n" + args[1])
       .sendTo(socket);
 

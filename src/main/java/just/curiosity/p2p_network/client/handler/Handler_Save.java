@@ -19,7 +19,7 @@ public class Handler_Save extends Handler {
   @Override
   public void handle(String[] args, String secret, Socket socket) throws IOException {
     new Packet()
-      .withType(PacketType.SAVE_DATA)
+      .withType(PacketType.SAVE_FILE)
       .withPayload(secret + "\n" + args[1])
       .sendTo(socket);
 

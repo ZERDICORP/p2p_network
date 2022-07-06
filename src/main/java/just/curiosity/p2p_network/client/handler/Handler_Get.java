@@ -18,7 +18,7 @@ public class Handler_Get extends Handler {
   @Override
   public void handle(String[] args, String secret, Socket socket) throws IOException {
     new Packet()
-      .withType(PacketType.GET_DATA)
+      .withType(PacketType.GET_FILE)
       .withPayload(secret + "\n" + args[1])
       .sendTo(socket);
 

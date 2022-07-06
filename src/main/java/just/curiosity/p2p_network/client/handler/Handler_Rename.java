@@ -19,7 +19,7 @@ public class Handler_Rename extends Handler {
   @Override
   public void handle(String[] args, String secret, Socket socket) throws IOException {
     new Packet()
-      .withType(PacketType.RENAME_DATA)
+      .withType(PacketType.RENAME_FILE)
       .withPayload(secret + "\n" + args[1] + "\n" + args[2])
       .sendTo(socket);
 
