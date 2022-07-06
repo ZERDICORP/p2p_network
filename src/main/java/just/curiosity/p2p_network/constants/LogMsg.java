@@ -18,7 +18,7 @@ public interface LogMsg {
   String WRONG_SECRET = "wrong secret..";
   String FILE_DELETED_SUCCESSFULLY = "file deleted successfully!";
   String FILE_RENAMED_SUCCESSFULLY = "file renamed successfully!";
-  String FILE_CREATED_SUCCESSFULLY = "file created successfully!";
+  String FILE_SAVED_SUCCESSFULLY = "file saved successfully!";
   String CANT_START_SERVER = "can't start server.. ?";
   String WRONG_USAGE = "wrong usage.. check out usage guide!";
 }
