@@ -17,11 +17,7 @@ import just.curiosity.p2p_network.server.annotation.WithPacketType;
 public class Handler_AddNode implements Handler {
   @Override
   public void handle(Server server, Socket socket, String socketAddress, Packet packet) {
-    // TODO: Before adding a node, send a test request
-
     final Set<String> nodes = server.nodes();
     nodes.add(new String(packet.payload()));
-
-    System.out.println("NODES AFTER ADDING NEW NODE: " + nodes); // TODO: remove debug log
   }
 }

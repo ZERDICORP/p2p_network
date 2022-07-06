@@ -49,8 +49,6 @@ public class Handler_RenameFile implements Handler {
       final String shardName = DigestUtils.sha256Hex(metaFileName + shardInfo[0]);
       final String newShardName = DigestUtils.sha256Hex(newMetaFileName + shardInfo[0]);
 
-      System.out.println("RENAMING SHARD: " + shardName + " -> " + newShardName); // TODO: remove debug log
-
       for (String nodeAddress : server.nodes()) {
         final Packet getShardPacket = Handler_GetFile.getShard(nodeAddress, server.port(), shardName,
           shardInfo[1], payload.get(0));

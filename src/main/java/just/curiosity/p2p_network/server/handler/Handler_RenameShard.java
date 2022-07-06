@@ -33,7 +33,5 @@ public class Handler_RenameShard implements Handler {
     final File newShardFile = new File(Const.SHARDS_DIRECTORY + "/" + newShardName);
 
     FileUtils.moveFile(shardFile, newShardFile);
-
-    System.out.println("RENAMED SHARD: " + shardName + " -> " + newShardName); // TODO: remove debug log
   }
 }

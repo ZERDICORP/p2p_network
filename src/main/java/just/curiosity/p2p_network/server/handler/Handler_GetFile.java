@@ -48,8 +48,6 @@ public class Handler_GetFile implements Handler {
       final String[] shardInfo = metaInfo.split(",");
       final String shardName = DigestUtils.sha256Hex(metaFileName + shardInfo[0]);
 
-      System.out.println("REQUESTING SHARD: " + shardName); // TODO: remove debug log
-
       String shard = null;
       for (String nodeAddress : server.nodes()) {
         final Packet getShardPacket = getShard(nodeAddress, server.port(), shardName, shardInfo[1], payload.get(0));

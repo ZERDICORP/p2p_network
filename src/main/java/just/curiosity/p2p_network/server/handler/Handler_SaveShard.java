@@ -29,7 +29,5 @@ public class Handler_SaveShard implements Handler {
 
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
     FileUtils.writeByteArrayToFile(new File(Const.SHARDS_DIRECTORY + "/" + shardName), payload.get(1));
-
-    System.out.println("SAVED SHARD: " + shardName); // TODO: remove debug log
   }
 }

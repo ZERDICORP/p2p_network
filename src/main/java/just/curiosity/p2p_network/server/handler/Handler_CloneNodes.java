@@ -32,7 +32,5 @@ public class Handler_CloneNodes implements Handler {
       .withPayload(socketAddress.getBytes()));
 
     nodes.add(socketAddress);
-
-    System.out.println("CLONE ACCEPTED: " + socketAddress); // TODO: remove debug log
   }
 }

@@ -90,8 +90,6 @@ public class Handler_SaveFile implements Handler {
       // We save information about the correct sequence of
       // shards and their contents.
       metaData[indices[i]] = i + "," + DigestUtils.sha256Hex(encryptedShard);
-
-      System.out.println("SHARED SHARD: " + shardName); // TODO: remove debug log
     }
 
     FileUtils.writeByteArrayToFile(new File(Const.META_DIRECTORY + "/" + metaFileName),

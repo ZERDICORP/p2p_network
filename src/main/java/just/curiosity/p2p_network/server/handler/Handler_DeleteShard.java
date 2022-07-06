@@ -29,6 +29,5 @@ public class Handler_DeleteShard implements Handler {
 
     final String shardName = DigestUtils.sha256Hex(payload.getAsString(0) + socketAddress);
     FileUtils.delete(new File(Const.SHARDS_DIRECTORY + "/" + shardName));
-    System.out.println("DELETED SHARD: " + shardName); // TODO: remove debug log
   }
 }

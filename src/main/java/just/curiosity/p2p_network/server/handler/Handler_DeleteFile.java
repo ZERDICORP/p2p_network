@@ -46,8 +46,6 @@ public class Handler_DeleteFile implements Handler {
       final String[] shardInfo = metaInfo.split(",");
       final String shardName = DigestUtils.sha256Hex(metaFileName + shardInfo[0]);
 
-      System.out.println("DELETING SHARD: " + shardName); // TODO: remove debug log
-
       for (String nodeAddress : server.nodes()) {
         final Packet getShardPacket = Handler_GetFile.getShard(nodeAddress, server.port(), shardName,
           shardInfo[1], payload.get(0));
