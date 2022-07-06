@@ -95,6 +95,8 @@ public class Server {
       while (isRunning) {
         try (final Socket socket = serverSocket.accept()) {
           handleSocket(socket);
+        } catch (IOException e) {
+          Logger.log(LogMsg.SOCKET_HANDLING_ERROR, e.getMessage());
         }
       }
     }

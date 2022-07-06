@@ -7,7 +7,6 @@ package just.curiosity.p2p_network.constants;
  */
 
 public interface LogMsg {
-  String CANT_SEND_PACKET = "can't send package to ?.. ?";
   String CANT_CONNECT_TO_PEER = "can't connect to peer ?.. ?";
   String HANDLER_HAS_NO_ANNOTATION = "handler ? has no annotation ?.. ignore";
   String SERVER_STARTED = "server has been started on port ?..";
@@ -15,4 +14,9 @@ public interface LogMsg {
   String CANT_SEND_PACKET_TO_LOCAL_NODE = "can't send packet to local node.. ?";
   String FAILED_TO_SEND_PACKET = "failed to send packet.. ?";
   String FILE_NOT_FOUND = "file not found..";
+  String SOCKET_HANDLING_ERROR = "socket handling error.. ?";
+  String WRONG_SECRET = "wrong secret..";
+  String FILE_DELETED_SUCCESSFULLY = "file deleted successfully!";
+  String FILE_RENAMED_SUCCESSFULLY = "file renamed successfully!";
+  String FILE_CREATED_SUCCESSFULLY = "file created successfully!";
 }

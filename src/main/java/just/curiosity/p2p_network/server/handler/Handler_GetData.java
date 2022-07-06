@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Set;
 import just.curiosity.p2p_network.constants.Const;
 import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.Server;
@@ -23,9 +22,8 @@ import org.apache.commons.io.FileUtils;
 
 @WithPacketType(PacketType.GET_DATA)
 public class Handler_GetData implements Handler {
-  public void handle(Server server, Socket socket, Packet packet) {
+  public void handle(Server server, Socket socket, Packet packet) throws IOException {
     final String socketAddress = socket.getInetAddress().toString().split("/")[1];
-
     // If the request came from the local host, then you need
     // to go through the list of nodes and request data from
     // them using the identifier sent by the client.
@@ -35,13 +33,11 @@ public class Handler_GetData implements Handler {
         return;
       }
 
-      final String fileName = DigestUtils.sha256Hex(payload.get(1));
-      final Set<String> nodes = server.nodes();
-      final String[] shards;
+      final String metaFileName = DigestUtils.sha256Hex(payload.get(1));
+      final File metaFile = new File(Const.META_DIRECTORY + "/" + metaFileName);
+      final String[] metaData;
       try {
-        final String sharedContent = FileUtils.readFileToString(
-          new File(Const.META_DIRECTORY + "/" + fileName), StandardCharsets.UTF_8);
-        shards = sharedContent.split("\n");
+        metaData = FileUtils.readFileToString(metaFile, StandardCharsets.UTF_8).split("\n");
       } catch (IOException e) {
         new Packet()
           .withType(PacketType.FILE_NOT_FOUND)
@@ -49,58 +45,42 @@ public class Handler_GetData implements Handler {
         return;
       }
 
-      final StringBuilder originalFileContent = new StringBuilder();
-      for (String shardInfo : shards) {
-        final String[] shardInfoArr = shardInfo.split(",");
-        final String shardName = DigestUtils.sha256Hex(fileName + shardInfoArr[0]);
+      final StringBuilder result = new StringBuilder();
+      for (String metaInfo : metaData) {
+        final String[] shardInfo = metaInfo.split(",");
+        final String shardName = DigestUtils.sha256Hex(metaFileName + shardInfo[0]);
 
         System.out.println("REQUESTING SHARD: " + shardName); // TODO: remove debug log
 
         String shard = null;
-        for (String nodeAddress : nodes) {
-          try (final Socket nodeSocket = new Socket(nodeAddress, server.port())) {
-            new Packet()
-              .withType(PacketType.GET_DATA)
-              .withPayload(shardName.getBytes())
-              .sendTo(nodeSocket);
-
-            final Packet getShardPacket = Packet.read(nodeSocket.getInputStream());
-            if (getShardPacket == null) {
-              continue;
-            }
-
-            final byte[] foundShard = getShardPacket.payload();
-            // If the hash of the found shard does not match the
-            // signature, then the shard has been modified and is
-            // no longer valid. Skip and continue the search.
-            if (!shardInfoArr[1].equals(DigestUtils.sha256Hex(foundShard))) {
-              continue;
-            }
-
-            final byte[] decryptedFoundShard = AESCipher.decrypt(foundShard, payload.get(0));
-            // If the decrypt method returns null, then the wrong
-            // key was used.
-            if (decryptedFoundShard == null) {
-              return;
-            }
-
-            shard = new String(decryptedFoundShard);
-            break;
-          } catch (IOException e) {
-            throw new RuntimeException(e); // TODO: replace exception with log
+        for (String nodeAddress : server.nodes()) {
+          final Packet getShardPacket = getShard(nodeAddress, server.port(), shardName, shardInfo[1], payload.get(0));
+          if (getShardPacket == null) {
+            continue;
           }
+
+          if (!getShardPacket.type().equals(PacketType.OK)) {
+            getShardPacket.sendTo(socket);
+            return;
+          }
+
+          shard = getShardPacket.payloadAsString();
+          break;
         }
 
         if (shard == null) {
+          new Packet()
+            .withType(PacketType.FILE_NOT_FOUND)
+            .sendTo(socket);
           return;
         }
 
-        originalFileContent.append(shard);
+        result.append(shard);
       }
 
       new Packet()
         .withType(PacketType.OK)
-        .withPayload(originalFileContent.toString().getBytes())
+        .withPayload(result.toString().getBytes())
         .sendTo(socket);
       return;
     }
@@ -115,7 +95,6 @@ public class Handler_GetData implements Handler {
     try {
       shard = FileUtils.readFileToByteArray(new File(Const.SHARDS_DIRECTORY + "/" + shardName));
     } catch (IOException e) {
-      System.out.println("Can't read shard \"" + shardName + "\".. " + e);
       return;
     }
 
@@ -123,5 +102,33 @@ public class Handler_GetData implements Handler {
       .withType(PacketType.OK)
       .withPayload(shard)
       .sendTo(socket);
+  }
+
+  public static Packet getShard(String nodeAddress, int port, String shardName, String shardSignature,
+                                byte[] secret) throws IOException {
+    try (final Socket nodeSocket = new Socket(nodeAddress, port)) {
+      new Packet()
+        .withType(PacketType.GET_DATA)
+        .withPayload(shardName.getBytes())
+        .sendTo(nodeSocket);
+
+      final Packet getShardPacket = Packet.read(nodeSocket.getInputStream());
+      if (getShardPacket == null) {
+        return null;
+      }
+
+      final byte[] foundShard = getShardPacket.payload();
+      if (!shardSignature.equals(DigestUtils.sha256Hex(foundShard))) {
+        return null;
+      }
+
+      final byte[] decryptedFoundShard = AESCipher.decrypt(foundShard, secret);
+      if (decryptedFoundShard == null) {
+        return new Packet()
+          .withType(PacketType.WRONG_SECRET);
+      }
+
+      return getShardPacket.withPayload(decryptedFoundShard);
+    }
   }
 }

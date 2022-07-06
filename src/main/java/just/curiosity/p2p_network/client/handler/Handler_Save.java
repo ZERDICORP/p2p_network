@@ -1,14 +1,14 @@
 package just.curiosity.p2p_network.client.handler;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Socket;
 import just.curiosity.p2p_network.client.zer.cmd.CMDHandler;
 import just.curiosity.p2p_network.client.zer.cmd.CMDPattern;
 import just.curiosity.p2p_network.constants.Const;
+import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.server.util.Logger;
 
 /**
  * @author zerdicorp
@@ -20,17 +20,25 @@ import just.curiosity.p2p_network.server.packet.Packet;
 public class Handler_Save extends CMDHandler {
   @Override
   public void handle(String[] args, String secret) {
-    if (!new File(args[1]).exists()) {
-      System.out.println("File \"" + args[1] + "\" does not exist..");
-      return;
-    }
+    try (final Socket socket = new Socket("127.0.0.1", Const.PORT)) {
+      new Packet()
+        .withType(PacketType.SAVE_DATA)
+        .withPayload(secret + "\n" + args[1])
+        .sendTo(socket);
 
-    final String payload = secret + "\n" + args[1];
-    try (final Socket nodeSocket = new Socket("127.0.0.1", Const.PORT)) {
-      final OutputStream outputStream = nodeSocket.getOutputStream();
-      outputStream.write(new Packet(PacketType.SAVE_DATA, payload.getBytes()).build());
+      final Packet packet = Packet.read(socket.getInputStream());
+      if (packet == null) {
+        return;
+      }
+
+      if (!packet.type().equals(PacketType.OK)) {
+        Logger.byPacketType(packet.type());
+        return;
+      }
+
+      Logger.log(LogMsg.FILE_CREATED_SUCCESSFULLY);
     } catch (IOException e) {
-      System.out.println("Can't send message to local node.. " + e);
+      Logger.log(LogMsg.CANT_SEND_PACKET_TO_LOCAL_NODE, e.getMessage());
     }
   }
 }

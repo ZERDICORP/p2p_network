@@ -5,8 +5,10 @@ import java.net.Socket;
 import just.curiosity.p2p_network.client.zer.cmd.CMDHandler;
 import just.curiosity.p2p_network.client.zer.cmd.CMDPattern;
 import just.curiosity.p2p_network.constants.Const;
+import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.server.packet.Packet;
+import just.curiosity.p2p_network.server.util.Logger;
 
 /**
  * @author zerdicorp
@@ -18,12 +20,25 @@ import just.curiosity.p2p_network.server.packet.Packet;
 public class Handler_Delete extends CMDHandler {
   @Override
   public void handle(String[] args, String secret) {
-    final String payload = secret + "\n" + args[1];
-    try (final Socket nodeSocket = new Socket("127.0.0.1", Const.PORT)) {
-      nodeSocket.getOutputStream()
-        .write(new Packet(PacketType.DELETE_DATA, payload.getBytes()).build());
+    try (final Socket socket = new Socket("127.0.0.1", Const.PORT)) {
+      new Packet()
+        .withType(PacketType.DELETE_DATA)
+        .withPayload(secret + "\n" + args[1])
+        .sendTo(socket);
+
+      final Packet packet = Packet.read(socket.getInputStream());
+      if (packet == null) {
+        return;
+      }
+
+      if (!packet.type().equals(PacketType.OK)) {
+        Logger.byPacketType(packet.type());
+        return;
+      }
+
+      Logger.log(LogMsg.FILE_DELETED_SUCCESSFULLY);
     } catch (IOException e) {
-      System.out.println("Can't send message to local node.. " + e);
+      Logger.log(LogMsg.CANT_SEND_PACKET_TO_LOCAL_NODE, e.getMessage());
     }
   }
 }

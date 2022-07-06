@@ -14,5 +14,6 @@ public enum PacketType {
   GET_DATA,
   DELETE_DATA,
   RENAME_DATA,
-  FILE_NOT_FOUND
+  FILE_NOT_FOUND,
+  WRONG_SECRET
 }

@@ -27,8 +27,12 @@ public class Handler_Get extends CMDHandler {
         .sendTo(socket);
 
       final Packet packet = Packet.read(socket.getInputStream());
-      if (packet == null || !packet.type().equals(PacketType.OK)) {
-        Logger.log(LogMsg.FILE_NOT_FOUND);
+      if (packet == null) {
+        return;
+      }
+
+      if (!packet.type().equals(PacketType.OK)) {
+        Logger.byPacketType(packet.type());
         return;
       }
 
