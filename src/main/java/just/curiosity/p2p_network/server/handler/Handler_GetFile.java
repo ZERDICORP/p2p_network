@@ -82,7 +82,7 @@ public class Handler_GetFile implements Handler {
   }
 
   public static Packet getShard(String nodeAddress, int port, String shardName, String shardSignature,
-                                byte[] secret) throws IOException {
+                                byte[] secret) {
     try (final Socket nodeSocket = new Socket(nodeAddress, port)) {
       new Packet()
         .withType(PacketType.GET_SHARD)
@@ -106,6 +106,8 @@ public class Handler_GetFile implements Handler {
       }
 
       return getShardPacket.withPayload(decryptedFoundShard);
+    } catch (IOException e) {
+      return null;
     }
   }
 }
