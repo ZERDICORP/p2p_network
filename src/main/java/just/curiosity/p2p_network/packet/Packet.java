@@ -105,30 +105,26 @@ public class Packet {
 
   public static Packet read(InputStream inputStream) throws IOException {
     final byte[] firstSegmentBuffer = new byte[1024];
-
     final int firstSegmentSize = inputStream.read(firstSegmentBuffer);
     if (firstSegmentSize == -1) {
       return null;
     }
 
     final int metaSize = metaSize(firstSegmentBuffer, firstSegmentSize);
-
     final Packet packet = new Packet();
     if (!packet.parseMeta(new String(firstSegmentBuffer, 0, metaSize))) {
       return null;
     }
 
     if (packet.payloadSize() > 0) {
-      byte[] payloadBuffer = new byte[packet.payloadSize()];
-
-      int payloadBytesLengthInFirstSegment = firstSegmentSize - (metaSize + 1);
+      final byte[] payloadBuffer = new byte[packet.payloadSize()];
+      final int payloadBytesLengthInFirstSegment = firstSegmentSize - (metaSize + 1);
       for (int i = 0; i < payloadBytesLengthInFirstSegment && i < payloadBuffer.length; ++i) {
         payloadBuffer[i] = firstSegmentBuffer[i + (metaSize + 1)];
       }
 
       int offset = payloadBytesLengthInFirstSegment;
       int segmentSize;
-
       while (offset < payloadBuffer.length &&
         (segmentSize = inputStream.read(payloadBuffer, offset, payloadBuffer.length - offset)) > 0) {
         offset += segmentSize;
