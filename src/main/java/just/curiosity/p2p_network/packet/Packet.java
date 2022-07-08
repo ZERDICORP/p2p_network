@@ -52,10 +52,6 @@ public class Packet {
     return payloadSize;
   }
 
-  public void payload(byte[] payload) {
-    this.payload = payload;
-  }
-
   public void sendTo(Socket socket) {
     try {
       socket.getOutputStream().write(build());
@@ -130,7 +126,7 @@ public class Packet {
         offset += segmentSize;
       }
 
-      packet.payload(payloadBuffer);
+      packet.withPayload(payloadBuffer);
     }
 
     return packet;
