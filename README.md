@@ -3,7 +3,7 @@
 
 ## What is it? :eyes:
 Well, the other day I watched the series **Silicon Valley**, in which a group of enthusiasts developed a compression algorithm.  
-But I was attracted not so much by the compression algorithm as by its application, one of which was a decentralized data warehouse.  
+But I was attracted not so much by the compression algorithm as by its application, one of which was a decentralized data storage.  
 And then I remembered that I had long wanted to create such a network. And then... That's right, then I started to implement it.
 
 ***Did I succeed?*** Let's just say I'm not disappointed.  
