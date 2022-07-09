@@ -68,7 +68,7 @@ $ ./p2p -s 188.187.188.37
 #### 4. Сlient usage
 > When executing each command on the client, you will need to enter a secret (it can be different for each file).
 + **Saving a file**
-> The contents of the file "file.txt":
+> The contents of the "file.txt":  
 > Hello, world!
 ```
 $ ./p2p -c save /path/to/file.txt
@@ -81,7 +81,7 @@ $ ./p2p -c cat file.txt
 [>] enter secret: 
 Hello, world!
 ```
-> Or if you want the result to be written to a file:
+> Or if you want the result to be written to a file
 ```
 $ ./p2p -c cat file.txt -o out.txt
 [>] enter secret:
