@@ -21,4 +21,5 @@ public interface LogMsg {
   String FILE_SAVED_SUCCESSFULLY = "file saved successfully!";
   String CANT_START_SERVER = "can't start server.. ?";
   String WRONG_USAGE = "wrong usage.. check out usage guide!";
+  String FILE_CONTENTS_ARE_WRITTEN_TO = "file contents are written to: ?";
 }

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import just.curiosity.p2p_network.client.annotation.WithPattern;
+import just.curiosity.p2p_network.constants.LogMsg;
 import just.curiosity.p2p_network.constants.PacketType;
 import just.curiosity.p2p_network.packet.Packet;
 import just.curiosity.p2p_network.util.Logger;
@@ -39,6 +40,8 @@ public class Handler_Get extends Handler {
       return;
     }
 
-    FileUtils.writeByteArrayToFile(new File(args[3]), packet.payload());
+    final File outFile = new File(args[3]);
+    FileUtils.writeByteArrayToFile(outFile, packet.payload());
+    Logger.log(LogMsg.FILE_CONTENTS_ARE_WRITTEN_TO, outFile.getPath());
   }
 }

@@ -71,5 +71,9 @@ public class Handler_RenameFile implements Handler {
     }
 
     FileUtils.moveFile(metaFile, newMetaFile);
+
+    new Packet()
+      .withType(PacketType.OK)
+      .sendTo(socket);
   }
 }
