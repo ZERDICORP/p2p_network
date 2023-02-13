@@ -61,7 +61,7 @@ $ mvn clean compile assembly:single
 > Below, my server acts as the root node.
 ```
 $ echo "java -jar target/p2p_network-1.0-SNAPSHOT-jar-with-dependencies.jar \$@" > p2p && chmod +x p2p
-$ ./p2p -s 188.187.188.37
+$ ./p2p -s 95.165.89.228
 [log]: server has been started on port 8080..
 ```
 
